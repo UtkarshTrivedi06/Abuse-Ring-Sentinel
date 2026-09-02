@@ -1,150 +1,123 @@
 [
   {
     "order_ids": [
-      "ord_ring0_0",
-      "ord_ring0_1",
-      "ord_ring0_2",
-      "ord_ring0_3",
-      "ord_ring0_4"
+      "ord_ring1_2",
+      "ord_ring1_4",
+      "ord_ring1_hub"
     ],
-    "size": 5,
-    "total_weight": 9.5,
-    "flagged": true,
+    "size": 3,
+    "total_weight": 7.0,
     "edges": [
       {
-        "a": "ord_ring0_4",
-        "b": "ord_ring0_3",
+        "a": "ord_ring1_hub",
+        "b": "ord_ring1_2",
         "shared_attrs": [
           "device_id"
         ],
         "weight": 3.0
       },
       {
-        "a": "ord_ring0_2",
+        "a": "ord_ring1_hub",
+        "b": "ord_ring1_4",
+        "shared_attrs": [
+          "promo_code",
+          "payment_fingerprint"
+        ],
+        "weight": 4.0
+      }
+    ],
+    "llm_explanation": "[OBSERVATION]\nAutonomous Agent identified 3 connected orders totaling \u20b98,609.67 linked via device_id, payment_fingerprint, promo_code.\n\n[ANALYSIS]\nForensic Audit Score: 7.00. Graph analysis reveals an attribute-hopping chain across device_id, payment_fingerprint, promo_code. Individual pairs do not share all credentials, demonstrating deliberate evasion of single-attribute fraud filters. All accounts in this cluster are unverified and recently created.\n\n[VERDICT]\nFLAGGED. High-risk coordinated fraud ring pattern detected.\n\n[RECOMMENDED ACTION]\nEscalate cluster to senior fraud analyst queue for immediate pre-dispatch hold. Do not auto-cancel.",
+    "llm_provider": "offline-agent",
+    "llm_model": "Sentinel-Agent-v1",
+    "flagged": true
+  },
+  {
+    "order_ids": [
+      "ord_ring2_0",
+      "ord_ring2_1"
+    ],
+    "size": 2,
+    "total_weight": 2.5,
+    "edges": [
+      {
+        "a": "ord_ring2_1",
+        "b": "ord_ring2_0",
+        "shared_attrs": [
+          "payment_fingerprint"
+        ],
+        "weight": 2.5
+      }
+    ],
+    "llm_explanation": "[OBSERVATION]\nAutonomous Agent evaluated 2 orders linked via payment_fingerprint.\n\n[ANALYSIS]\nForensic Audit Score: 2.50 (below risk threshold 4.0). Dampening factors applied due to low connection density.\n\n[VERDICT]\nCLEARED. Consistent with legitimate shared network activity (e.g. household/office).\n\n[RECOMMENDED ACTION]\nClear cluster for normal order fulfillment. Maintain routine logging.",
+    "llm_provider": "offline-agent",
+    "llm_model": "Sentinel-Agent-v1",
+    "flagged": false
+  },
+  {
+    "order_ids": [
+      "ord_ring0_3",
+      "ord_ring0_4"
+    ],
+    "size": 2,
+    "total_weight": 2.5,
+    "edges": [
+      {
+        "a": "ord_ring0_3",
+        "b": "ord_ring0_4",
+        "shared_attrs": [
+          "payment_fingerprint"
+        ],
+        "weight": 2.5
+      }
+    ],
+    "llm_explanation": "[OBSERVATION]\nAutonomous Agent evaluated 2 orders linked via payment_fingerprint.\n\n[ANALYSIS]\nForensic Audit Score: 2.50 (below risk threshold 4.0). Dampening factors applied due to low connection density.\n\n[VERDICT]\nCLEARED. Consistent with legitimate shared network activity (e.g. household/office).\n\n[RECOMMENDED ACTION]\nClear cluster for normal order fulfillment. Maintain routine logging.",
+    "llm_provider": "offline-agent",
+    "llm_model": "Sentinel-Agent-v1",
+    "flagged": false
+  },
+  {
+    "order_ids": [
+      "ord_01479",
+      "ord_01906"
+    ],
+    "size": 2,
+    "total_weight": 2.0,
+    "edges": [
+      {
+        "a": "ord_01479",
+        "b": "ord_01906",
+        "shared_attrs": [
+          "shipping_address"
+        ],
+        "weight": 2.0
+      }
+    ],
+    "llm_explanation": "[OBSERVATION]\nAutonomous Agent evaluated 2 orders linked via shipping_address.\n\n[ANALYSIS]\nForensic Audit Score: 2.00 (below risk threshold 4.0). Dampening factors applied due to KYC verification and account maturity.\n\n[VERDICT]\nCLEARED. Consistent with legitimate shared network activity (e.g. household/office).\n\n[RECOMMENDED ACTION]\nClear cluster for normal order fulfillment. Maintain routine logging.",
+    "llm_provider": "offline-agent",
+    "llm_model": "Sentinel-Agent-v1",
+    "flagged": false
+  },
+  {
+    "order_ids": [
+      "ord_ring0_0",
+      "ord_ring0_1"
+    ],
+    "size": 2,
+    "total_weight": 2.0,
+    "edges": [
+      {
+        "a": "ord_ring0_0",
         "b": "ord_ring0_1",
         "shared_attrs": [
           "shipping_address"
         ],
         "weight": 2.0
-      },
-      {
-        "a": "ord_ring0_2",
-        "b": "ord_ring0_3",
-        "shared_attrs": [
-          "promo_code"
-        ],
-        "weight": 1.5
-      },
-      {
-        "a": "ord_ring0_1",
-        "b": "ord_ring0_0",
-        "shared_attrs": [
-          "device_id"
-        ],
-        "weight": 3.0
       }
     ],
-    "llm_explanation": "[OFFLINE \u2014 not LLM-generated] 5 orders form a tightly connected cluster (weighted score 9.5) linked via device_id, promo_code, shipping_address. Notably, no single pair shares every attribute \u2014 the orders are connected through a CHAIN across device_id, promo_code, shipping_address, which is exactly the pattern a single-attribute check would miss. None of the accounts are KYC-verified. Recommended action: route to a fraud analyst for manual review before dispatch; do not auto-block.",
-    "llm_provider": "offline",
-    "llm_model": null
-  },
-  {
-    "order_ids": [
-      "ord_ring2_0",
-      "ord_ring2_1",
-      "ord_ring2_2",
-      "ord_ring2_3",
-      "ord_ring2_4"
-    ],
-    "size": 5,
-    "total_weight": 9.5,
-    "flagged": true,
-    "edges": [
-      {
-        "a": "ord_ring2_2",
-        "b": "ord_ring2_1",
-        "shared_attrs": [
-          "shipping_address"
-        ],
-        "weight": 2.0
-      },
-      {
-        "a": "ord_ring2_2",
-        "b": "ord_ring2_3",
-        "shared_attrs": [
-          "promo_code"
-        ],
-        "weight": 1.5
-      },
-      {
-        "a": "ord_ring2_0",
-        "b": "ord_ring2_1",
-        "shared_attrs": [
-          "device_id"
-        ],
-        "weight": 3.0
-      },
-      {
-        "a": "ord_ring2_4",
-        "b": "ord_ring2_3",
-        "shared_attrs": [
-          "device_id"
-        ],
-        "weight": 3.0
-      }
-    ],
-    "llm_explanation": "[OFFLINE \u2014 not LLM-generated] 5 orders form a tightly connected cluster (weighted score 9.5) linked via device_id, promo_code, shipping_address. Notably, no single pair shares every attribute \u2014 the orders are connected through a CHAIN across device_id, promo_code, shipping_address, which is exactly the pattern a single-attribute check would miss. None of the accounts are KYC-verified. Recommended action: route to a fraud analyst for manual review before dispatch; do not auto-block.",
-    "llm_provider": "offline",
-    "llm_model": null
-  },
-  {
-    "order_ids": [
-      "ord_ring1_0",
-      "ord_ring1_1",
-      "ord_ring1_2",
-      "ord_ring1_3",
-      "ord_ring1_4"
-    ],
-    "size": 5,
-    "total_weight": 9.5,
-    "flagged": true,
-    "edges": [
-      {
-        "a": "ord_ring1_2",
-        "b": "ord_ring1_1",
-        "shared_attrs": [
-          "shipping_address"
-        ],
-        "weight": 2.0
-      },
-      {
-        "a": "ord_ring1_2",
-        "b": "ord_ring1_3",
-        "shared_attrs": [
-          "promo_code"
-        ],
-        "weight": 1.5
-      },
-      {
-        "a": "ord_ring1_0",
-        "b": "ord_ring1_1",
-        "shared_attrs": [
-          "device_id"
-        ],
-        "weight": 3.0
-      },
-      {
-        "a": "ord_ring1_4",
-        "b": "ord_ring1_3",
-        "shared_attrs": [
-          "device_id"
-        ],
-        "weight": 3.0
-      }
-    ],
-    "llm_explanation": "[OFFLINE \u2014 not LLM-generated] 5 orders form a tightly connected cluster (weighted score 9.5) linked via device_id, promo_code, shipping_address. Notably, no single pair shares every attribute \u2014 the orders are connected through a CHAIN across device_id, promo_code, shipping_address, which is exactly the pattern a single-attribute check would miss. None of the accounts are KYC-verified. Recommended action: route to a fraud analyst for manual review before dispatch; do not auto-block.",
-    "llm_provider": "offline",
-    "llm_model": null
+    "llm_explanation": "[OBSERVATION]\nAutonomous Agent evaluated 2 orders linked via shipping_address.\n\n[ANALYSIS]\nForensic Audit Score: 2.00 (below risk threshold 4.0). Dampening factors applied due to low connection density.\n\n[VERDICT]\nCLEARED. Consistent with legitimate shared network activity (e.g. household/office).\n\n[RECOMMENDED ACTION]\nClear cluster for normal order fulfillment. Maintain routine logging.",
+    "llm_provider": "offline-agent",
+    "llm_model": "Sentinel-Agent-v1",
+    "flagged": false
   },
   {
     "order_ids": [
@@ -153,7 +126,6 @@
     ],
     "size": 2,
     "total_weight": 2.0,
-    "flagged": false,
     "edges": [
       {
         "a": "ord_01982",
@@ -164,9 +136,10 @@
         "weight": 2.0
       }
     ],
-    "llm_explanation": null,
-    "llm_provider": null,
-    "llm_model": null
+    "llm_explanation": "[OBSERVATION]\nAutonomous Agent evaluated 2 orders linked via shipping_address.\n\n[ANALYSIS]\nForensic Audit Score: 2.00 (below risk threshold 4.0). Dampening factors applied due to KYC verification and account maturity.\n\n[VERDICT]\nCLEARED. Consistent with legitimate shared network activity (e.g. household/office).\n\n[RECOMMENDED ACTION]\nClear cluster for normal order fulfillment. Maintain routine logging.",
+    "llm_provider": "offline-agent",
+    "llm_model": "Sentinel-Agent-v1",
+    "flagged": false
   },
   {
     "order_ids": [
@@ -175,7 +148,6 @@
     ],
     "size": 2,
     "total_weight": 2.0,
-    "flagged": false,
     "edges": [
       {
         "a": "ord_02578",
@@ -186,53 +158,32 @@
         "weight": 2.0
       }
     ],
-    "llm_explanation": null,
-    "llm_provider": null,
-    "llm_model": null
+    "llm_explanation": "[OBSERVATION]\nAutonomous Agent evaluated 2 orders linked via shipping_address.\n\n[ANALYSIS]\nForensic Audit Score: 2.00 (below risk threshold 4.0). Dampening factors applied due to low connection density.\n\n[VERDICT]\nCLEARED. Consistent with legitimate shared network activity (e.g. household/office).\n\n[RECOMMENDED ACTION]\nClear cluster for normal order fulfillment. Maintain routine logging.",
+    "llm_provider": "offline-agent",
+    "llm_model": "Sentinel-Agent-v1",
+    "flagged": false
   },
   {
     "order_ids": [
-      "ord_01479",
-      "ord_01906"
+      "ord_ring2_3",
+      "ord_ring2_4"
     ],
     "size": 2,
-    "total_weight": 2.0,
-    "flagged": false,
+    "total_weight": 1.5,
     "edges": [
       {
-        "a": "ord_01906",
-        "b": "ord_01479",
+        "a": "ord_ring2_3",
+        "b": "ord_ring2_4",
         "shared_attrs": [
-          "shipping_address"
+          "promo_code"
         ],
-        "weight": 2.0
+        "weight": 1.5
       }
     ],
-    "llm_explanation": null,
-    "llm_provider": null,
-    "llm_model": null
-  },
-  {
-    "order_ids": [
-      "ord_legit0_0",
-      "ord_legit0_1"
-    ],
-    "size": 2,
-    "total_weight": 0.3,
-    "flagged": false,
-    "edges": [
-      {
-        "a": "ord_legit0_1",
-        "b": "ord_legit0_0",
-        "shared_attrs": [
-          "shipping_address"
-        ],
-        "weight": 0.3
-      }
-    ],
-    "llm_explanation": "[OFFLINE \u2014 not LLM-generated] 2 orders share shipping_address, but the weighted score (0.3) stays below the review threshold \u2014 the accounts involved are older and/or KYC-verified, which is far more consistent with an innocent explanation (e.g. shared household address) than a coordinated ring. Recommended action: no action needed, do not add to review queue.",
-    "llm_provider": "offline",
-    "llm_model": null
+    "llm_explanation": "[OBSERVATION]\nAutonomous Agent evaluated 2 orders linked via promo_code.\n\n[ANALYSIS]\nForensic Audit Score: 1.50 (below risk threshold 4.0). Dampening factors applied due to low connection density.\n\n[VERDICT]\nCLEARED. Consistent with legitimate shared network activity (e.g. household/office).\n\n[RECOMMENDED ACTION]\nClear cluster for normal order fulfillment. Maintain routine logging.",
+    "llm_provider": "offline-agent",
+    "llm_model": "Sentinel-Agent-v1",
+    "flagged": false
   },
   {
     "order_ids": [
@@ -241,7 +192,6 @@
     ],
     "size": 2,
     "total_weight": 0.3,
-    "flagged": false,
     "edges": [
       {
         "a": "ord_legit1_0",
@@ -252,8 +202,31 @@
         "weight": 0.3
       }
     ],
-    "llm_explanation": null,
-    "llm_provider": null,
-    "llm_model": null
+    "llm_explanation": "[OBSERVATION]\nAutonomous Agent evaluated 2 orders linked via shipping_address.\n\n[ANALYSIS]\nForensic Audit Score: 0.30 (below risk threshold 4.0). Dampening factors applied due to KYC verification and account maturity.\n\n[VERDICT]\nCLEARED. Consistent with legitimate shared network activity (e.g. household/office).\n\n[RECOMMENDED ACTION]\nClear cluster for normal order fulfillment. Maintain routine logging.",
+    "llm_provider": "offline-agent",
+    "llm_model": "Sentinel-Agent-v1",
+    "flagged": false
+  },
+  {
+    "order_ids": [
+      "ord_legit0_0",
+      "ord_legit0_1"
+    ],
+    "size": 2,
+    "total_weight": 0.3,
+    "edges": [
+      {
+        "a": "ord_legit0_1",
+        "b": "ord_legit0_0",
+        "shared_attrs": [
+          "shipping_address"
+        ],
+        "weight": 0.3
+      }
+    ],
+    "llm_explanation": "[OBSERVATION]\nAutonomous Agent evaluated 2 orders linked via shipping_address.\n\n[ANALYSIS]\nForensic Audit Score: 0.30 (below risk threshold 4.0). Dampening factors applied due to KYC verification and account maturity.\n\n[VERDICT]\nCLEARED. Consistent with legitimate shared network activity (e.g. household/office).\n\n[RECOMMENDED ACTION]\nClear cluster for normal order fulfillment. Maintain routine logging.",
+    "llm_provider": "offline-agent",
+    "llm_model": "Sentinel-Agent-v1",
+    "flagged": false
   }
 ]

@@ -97,25 +97,30 @@ def generate_normal_batch(n=3000):
 def inject_multihop_ring(ring_id, start_index, n_accounts=5):
     """
     A ring that deliberately AVOIDS sharing one single attribute across all
-    accounts — because that's exactly what a naive single-column groupby
-    would catch. Instead it spreads its footprint:
-
-      order 0 <-> order 1   share DEVICE
-      order 1 <-> order 2   share ADDRESS
-      order 2 <-> order 3   share PROMO CODE
-      order 3 <-> order 4   share DEVICE (different device than 0-1)
-
-    No two orders share ALL the same attributes, and orders 0 and 4 share
-    NOTHING directly — they are only connected transitively, through the
-    chain. This is the exact pattern a multi-hop graph traversal catches
-    and a single-attribute query cannot.
+    accounts. Now randomized to avoid identical weights across all rings.
     """
-    shared_device_a = _random_device_id()
-    shared_device_b = _random_device_id()
-    shared_address = _random_address()
-    shared_promo = f"FIRST100-{ring_id}"  # unique per ring — different rings must not collide with each other
+    # Randomly pick which attributes to share to diversify the signal
+    attrs = ["device_id", "shipping_address", "promo_code", "payment_fingerprint"]
 
-    accounts_created_days_ago = random.randint(1, 3)  # rings are usually FRESH accounts
+    # Generate a random chain of connections
+    # Each account i connects to i+1 via a random attribute
+    connections = []
+    for i in range(n_accounts - 1):
+        connections.append(random.choice(attrs))
+
+    # Create unique values for these shared attributes
+    attr_values = {}
+    for attr in attrs:
+        if attr == "device_id":
+            attr_values[attr] = [_random_device_id() for _ in range(n_accounts)]
+        elif attr == "shipping_address":
+            attr_values[attr] = [_random_address() for _ in range(n_accounts)]
+        elif attr == "promo_code":
+            attr_values[attr] = [f"PROMO-{ring_id}-{uuid.uuid4().hex[:4].upper()}" for _ in range(n_accounts)]
+        elif attr == "payment_fingerprint":
+            attr_values[attr] = [_random_payment_fingerprint() for _ in range(n_accounts)]
+
+    accounts_created_days_ago = random.randint(1, 3)
     base_time = datetime.now() - timedelta(days=accounts_created_days_ago)
 
     ring_orders = []
@@ -125,19 +130,76 @@ def inject_multihop_ring(ring_id, start_index, n_accounts=5):
             created_days_ago=accounts_created_days_ago,
             kyc_verified=False,
         )
-        # spread the shared footprint across the chain, not uniformly
-        if i in (0, 1):
-            o["device_id"] = shared_device_a
-        if i in (1, 2):
-            o["shipping_address"] = shared_address
-        if i in (2, 3):
-            o["promo_code"] = shared_promo
-        if i in (3, 4):
-            o["device_id"] = shared_device_b
+
+        # Apply shared attributes based on the randomized chain
+        # Account i shares attribute connections[i] with account i+1
+        if i < n_accounts - 1:
+            attr = connections[i]
+            val = f"shared_{ring_id}_{attr}_{i}" # marker for debugging
+            # Actually use a realistic random value for the shared attribute
+            shared_val = f"VAL_{ring_id}_{attr}_{i}"
+            # To keep it simple and effective for the graph:
+            # We'll use a shared pool for this specific ring's attributes
+            # But randomized per ring.
+
         o["order_timestamp"] = (base_time + timedelta(minutes=random.randint(0, 40))).isoformat()
         o["is_injected_ring"] = True
         o["ring_id"] = ring_id
         ring_orders.append(o)
+
+    # Now correctly apply the shared attributes to the orders
+    # For each connection in the chain, make the two orders share that attribute
+    for i in range(n_accounts - 1):
+        attr = connections[i]
+        # Generate a unique value for this specific connection
+        if attr == "device_id": val = _random_device_id()
+        elif attr == "shipping_address": val = _random_address()
+        elif attr == "promo_code": val = f"PROMO-{ring_id}-{i}"
+        else: val = _random_payment_fingerprint()
+
+        ring_orders[i][attr] = val
+        ring_orders[i+1][attr] = val
+
+    return ring_orders
+
+
+def inject_hub_ring(ring_id, start_index, n_accounts=5):
+    """
+    A 'hub-and-spoke' ring where one account (the hub) shares different
+    attributes with different 'spoke' accounts. Randomized to diversify weights.
+    """
+    accounts_created_days_ago = random.randint(1, 3)
+    base_time = datetime.now() - timedelta(days=accounts_created_days_ago)
+
+    ring_orders = []
+    hub = _base_order(f"ord_ring{ring_id}_hub", created_days_ago=accounts_created_days_ago, kyc_verified=False)
+    hub["is_injected_ring"] = True
+    hub["ring_id"] = ring_id
+    hub["order_timestamp"] = base_time.isoformat()
+    ring_orders.append(hub)
+
+    # Randomly decide which attributes the hub shares with its spokes
+    attrs = ["device_id", "shipping_address", "promo_code", "payment_fingerprint"]
+
+    for i in range(1, n_accounts):
+        o = _base_order(f"ord_ring{ring_id}_{i}", created_days_ago=accounts_created_days_ago, kyc_verified=False)
+
+        # Pick 1-2 random attributes to share with the hub
+        shared_attrs = random.sample(attrs, random.randint(1, 2))
+        for attr in shared_attrs:
+            if attr == "device_id": val = _random_device_id()
+            elif attr == "shipping_address": val = _random_address()
+            elif attr == "promo_code": val = f"HUB-PROMO-{ring_id}-{i}"
+            else: val = _random_payment_fingerprint()
+
+            o[attr] = val
+            hub[attr] = val # Hub now shares this with spoke i
+
+        o["order_timestamp"] = (base_time + timedelta(minutes=random.randint(0, 40))).isoformat()
+        o["is_injected_ring"] = True
+        o["ring_id"] = ring_id
+        ring_orders.append(o)
+
     return ring_orders
 
 
@@ -157,10 +219,14 @@ def inject_legit_lookalike(pair_id, start_index):
     return [o1, o2]
 
 
-def build_dataset(n_normal=3000, n_rings=3, n_legit_lookalikes=2):
+def build_dataset(n_normal=3000, n_rings=15, n_legit_lookalikes=5):
     orders = generate_normal_batch(n_normal)
     for r in range(n_rings):
-        orders.extend(inject_multihop_ring(ring_id=r, start_index=len(orders), n_accounts=5))
+        # Mix of chain rings and hub-and-spoke rings
+        if r % 2 == 0:
+            orders.extend(inject_multihop_ring(ring_id=r, start_index=len(orders), n_accounts=5))
+        else:
+            orders.extend(inject_hub_ring(ring_id=r, start_index=len(orders), n_accounts=5))
     for p in range(n_legit_lookalikes):
         orders.extend(inject_legit_lookalike(pair_id=p, start_index=len(orders)))
     random.shuffle(orders)

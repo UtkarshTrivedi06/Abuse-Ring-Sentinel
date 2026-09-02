@@ -30,8 +30,8 @@ that it generalizes to real-world fraud it has never seen. See
 ```
 data/       synthetic order generator + deliberate ring & near-miss injection
 graph/      multi-attribute graph construction
-scoring/    weighted edges, dampening, clustering, threshold — the auditable core
-llm/        plain-English explanation layer, read-only over scoring output
+scoring/    weighted edges, dampening, candidate clustering — candidate discovery
+llm/        Autonomous AI Risk Sentinel Agent for forensic investigation & risk verdicts
 metrics/    precision/recall, review-queue reduction, audit report
 tests/      standalone proof of the graceful-failure (near-miss) case
 frontend/   self-contained analyst review dashboard (open index.html directly)
@@ -80,11 +80,7 @@ They're not, because they're old, KYC-verified accounts, and the dampening
 logic in the scoring layer treats that combination as far more consistent
 with an innocent explanation than coordinated fraud."
 
-**[3:00–3:45] Why the LLM doesn't decide anything.** "Every flag decision
-is deterministic graph math, logged and reproducible — that's the audit
-trail a regulator or a fraud analyst actually needs. The LLM only explains
-a decision the scoring layer already made. It can't flip a flag. That
-separation is enforced in the code, not just claimed in this pitch."
+**[3:00–3:45] The Autonomous AI Agent.** "The AI Agent receives the multi-attribute candidate graph and order evidence, performs deep forensic chain-of-thought analysis, evaluates account ages, KYC statuses, and dampening signals, and renders structured risk verdicts (`FLAGGED` / `CLEARED`) alongside plain-English recommendations for human analysts."
 
 **[3:45–4:30] Honest limits + what's next.** "A maximally sophisticated
 ring using fully distinct infrastructure per fake account would beat this

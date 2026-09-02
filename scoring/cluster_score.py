@@ -67,9 +67,9 @@ def dampen_edge_weight(order_a, order_b, base_weight):
     return base_weight * dampen_factor
 
 
-def score_graph(G):
-    """Returns a list of scored clusters, each with its member orders and total weight."""
-    # weight every edge, with dampening applied
+def find_candidate_clusters(G):
+    """Returns all connected components of size >= 2 as candidates for AI investigation."""
+    # weight every edge, with dampening applied (still useful for the AI to see the 'raw' signal)
     for a, b, data in G.edges(data=True):
         order_a, order_b = G.nodes[a], G.nodes[b]
         total = 0.0
@@ -82,18 +82,16 @@ def score_graph(G):
         data["weight"] = total
         data["weight_breakdown"] = contributions
 
-    # connected components = clusters. Simple, transparent, defensible.
     clusters = []
     for component in nx.connected_components(G):
         if len(component) < 2:
-            continue  # isolated order, not a cluster
+            continue
         subG = G.subgraph(component)
         total_weight = sum(d["weight"] for _, _, d in subG.edges(data=True))
         clusters.append({
             "order_ids": sorted(component),
             "size": len(component),
             "total_weight": round(total_weight, 2),
-            "flagged": total_weight >= FLAG_THRESHOLD,
             "edges": [
                 {"a": a, "b": b, "shared_attrs": d["shared_attrs"], "weight": round(d["weight"], 2)}
                 for a, b, d in subG.edges(data=True)

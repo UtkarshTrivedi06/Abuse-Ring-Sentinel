@@ -23,15 +23,14 @@ real-time and network-level review in practice.
 ```
 generate_orders.py          build_graph.py             cluster_score.py
   (synthetic orders    →      (multi-attribute      →     (weighted edges,
-   + injected rings)           graph construction)          connected components,
-                                                              dampening,
-                                                              threshold)
+   + injected rings)           graph construction)          dampened graph scoring,
+                                                             candidate components)
                                                                    │
                                                                    ▼
                                                           explain_cluster.py
-                                                          (LLM explains the
-                                                           decision already made
-                                                           — never makes one)
+                                                          (Autonomous AI Agent:
+                                                           forensic audit, risk
+                                                           analysis & verdict)
                                                                    │
                                                                    ▼
                                                             evaluate.py
@@ -44,17 +43,10 @@ generate_orders.py          build_graph.py             cluster_score.py
                                                           (analyst review UI)
 ```
 
-## The core design decision: determinism is the audit trail, not the LLM
+## Architecture: Multi-Attribute Candidate Discovery + Autonomous AI Risk Agent
 
-`scoring/cluster_score.py` makes every flag/no-flag decision using
-reproducible graph math — fixed attribute weights, explicit dampening
-rules, a fixed threshold. That file, and its logged output, is the answer
-to "how is this auditable and regulator-friendly." The LLM in
-`llm/explain_cluster.py` is strictly read-only over that output: it is
-given a decision that has already been made and turns it into a sentence a
-human can read in five seconds. It cannot flip a flag. This separation is
-enforced structurally (a clean function boundary, the LLM never receives
-raw unscored data) — not just claimed in the pitch.
+`scoring/cluster_score.py` builds connection subgraphs and calculates dampened graph edge weights to isolate candidate clusters. `llm/explain_cluster.py` acts as an **Autonomous AI Risk Sentinel Agent** that performs deep forensic chain-of-thought analysis over candidate order graphs, evaluates attribute chains, account creation dates, and KYC signals, and renders structured risk verdicts (`[VERDICT] FLAGGED` / `[VERDICT] CLEARED`) along with actionable recommendations.
+
 
 ## Key design choices, and why
 

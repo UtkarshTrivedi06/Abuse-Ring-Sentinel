@@ -17,7 +17,7 @@ import json
 import sys
 
 from graph.build_graph import load_orders, build_graph
-from scoring.cluster_score import score_graph
+from scoring.cluster_score import find_candidate_clusters
 from llm.explain_cluster import explain_cluster
 
 
@@ -25,10 +25,10 @@ def run_near_miss_test():
     orders = load_orders()
     orders_by_id = {o["order_id"]: o for o in orders}
     G = build_graph(orders)
-    clusters = score_graph(G)
+    candidates = find_candidate_clusters(G)
 
     legit_clusters = [
-        c for c in clusters
+        c for c in candidates
         if any("legit" in oid for oid in c["order_ids"])
     ]
 
@@ -38,8 +38,11 @@ def run_near_miss_test():
 
     all_passed = True
     for c in legit_clusters:
-        status = "CORRECTLY NOT FLAGGED" if not c["flagged"] else "INCORRECTLY FLAGGED (BUG)"
-        if c["flagged"]:
+        explanation, provider, model = explain_cluster(c, orders_by_id)
+        is_flagged = "FLAGGED" in (explanation.split("[VERDICT]")[1] if "[VERDICT]" in explanation else explanation).upper()
+        
+        status = "CORRECTLY NOT FLAGGED" if not is_flagged else "INCORRECTLY FLAGGED (BUG)"
+        if is_flagged:
             all_passed = False
 
         print(f"\nCluster: {c['order_ids']}")
@@ -51,16 +54,14 @@ def run_near_miss_test():
             print(f"    {oid}: kyc_verified={o['kyc_verified']}, "
                   f"account_age_days~{(_days_since(o['account_created_at']))}")
 
-        explanation, provider, model = explain_cluster(c, orders_by_id)
-        print(f"  Explanation: {explanation}")
+        print(f"  AI Agent Audit ({provider}):\n{explanation}")
 
     print("\n" + "=" * 70)
     if all_passed:
-        print("PASS — both legit-lookalike pairs correctly stayed below the "
-              "review threshold, despite sharing a real attribute (address).")
+        print("PASS — legit-lookalike pairs correctly CLEARED by AI Agent, "
+              "despite sharing a real attribute (address).")
     else:
-        print("FAIL — a legit-lookalike pair was incorrectly flagged. "
-              "Dampening logic in scoring/cluster_score.py needs adjustment.")
+        print("FAIL — a legit-lookalike pair was incorrectly flagged.")
     print("=" * 70)
     return all_passed
 

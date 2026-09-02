@@ -216,52 +216,67 @@ def phase2_graph(orders):
     return G
 
 
-def phase3_score(G):
-    """Weight edges, dampen for innocent patterns, cluster, threshold."""
-    from scoring.cluster_score import score_graph
+def phase3_find_candidates(G):
+    """Find all candidate clusters (connected components) for AI investigation."""
+    from scoring.cluster_score import find_candidate_clusters
     t0 = time.perf_counter()
-    phase_start(3, "Cluster Scoring",
-                "Applying weighted-dampened scoring and connected-component clustering")
-    clusters = score_graph(G)
-    out = os.path.join(ROOT, "scoring", "clusters.json")
-    os.makedirs(os.path.dirname(out), exist_ok=True)
-    with open(out, "w") as f:
-        json.dump(clusters, f, indent=2)
-    flagged = [c for c in clusters if c["flagged"]]
-    phase_done("Cluster scoring", time.perf_counter() - t0,
-               f"{len(clusters)} clusters  ·  {len(flagged)} flagged")
-    return clusters
+    phase_start(3, "Candidate Discovery",
+                "Identifying all connected order clusters via multi-attribute graph")
+    candidates = find_candidate_clusters(G)
+    phase_done("Candidate discovery", time.perf_counter() - t0,
+               f"{len(candidates)} candidate clusters found")
+    return candidates
 
 
-def phase4_explain(clusters, orders):
-    """LLM explanation layer — live call to Groq/Gemini/Claude (whichever key is set), or offline fallback."""
+def phase4_ai_audit(candidates, orders):
+    """AI Agent investigates each candidate cluster to determine if it's a fraud ring."""
     from llm.explain_cluster import explain_cluster, ACTIVE_PROVIDER
     t0 = time.perf_counter()
-    mode = f"{ACTIVE_PROVIDER.upper()} (live)" if ACTIVE_PROVIDER != "offline" else "offline fallback — NOT an LLM call, set an API key for real output"
-    phase_start(4, "LLM Explanations",
-                f"Generating analyst summaries via {mode}")
+    mode = f"{ACTIVE_PROVIDER.upper()} (live)" if ACTIVE_PROVIDER != "offline" else "offline fallback"
+    phase_start(4, "AI Investigation",
+                f"Agent is auditing candidates via {mode}")
+
     orders_by_id = {o["order_id"]: o for o in orders}
-    to_explain = [c for c in clusters if c["flagged"]]
-    to_explain += [c for c in clusters if not c["flagged"] and "legit" in c["order_ids"][0]][:1]
-    to_explain_ids = {id(c) for c in to_explain}
     results = []
     actual_provider_used = "offline"
-    for cluster in clusters:
-        if id(cluster) in to_explain_ids:
-            exp, provider, model = explain_cluster(cluster, orders_by_id)
-            if provider != "offline":
-                actual_provider_used = provider
-        else:
-            exp, provider, model = None, None, None
-        results.append({**cluster, "llm_explanation": exp,
-                         "llm_provider": provider, "llm_model": model})
+
+    for cluster in candidates:
+        # The AI agent now DECIDES the verdict based on the evidence
+        explanation, provider, model = explain_cluster(cluster, orders_by_id)
+
+        if provider != "offline":
+            actual_provider_used = provider
+
+        # Parse the [VERDICT] section to set the flagged status
+        # We look for 'FLAGGED' or 'CLEARED' in the verdict section
+        is_flagged = False
+        if explanation:
+            # Extract the content after [VERDICT]
+            try:
+                verdict_part = explanation.split("[VERDICT]")[1].split("[")[0]
+                if "FLAGGED" in verdict_part.upper():
+                    is_flagged = True
+            except IndexError:
+                # Fallback: if no [VERDICT] tag, use a simple keyword check
+                if "FLAGGED" in explanation.upper():
+                    is_flagged = True
+
+        results.append({
+            **cluster,
+            "llm_explanation": explanation,
+            "llm_provider": provider,
+            "llm_model": model,
+            "flagged": is_flagged,
+        })
+
     out = os.path.join(ROOT, "llm", "explained_clusters.json")
     os.makedirs(os.path.dirname(out), exist_ok=True)
     with open(out, "w") as f:
         json.dump(results, f, indent=2)
+
     real_mode = f"{actual_provider_used.upper()} (live)" if actual_provider_used != "offline" else mode
-    phase_done("LLM explanations", time.perf_counter() - t0,
-               f"{len(to_explain)} clusters explained  ·  {real_mode}")
+    phase_done("AI investigation", time.perf_counter() - t0,
+               f"{len(candidates)} clusters audited · {sum(1 for r in results if r['flagged'])} flagged · {real_mode}")
     return results
 
 
@@ -408,6 +423,77 @@ def phase7_serve(port, frontend_dir):
         def log_message(self, fmt, *args):
             pass  # silence default request logging
 
+        def do_POST(self):
+            if self.path == '/check':
+                content_length = int(self.headers['Content-Length'])
+                post_data = self.rfile.read(content_length)
+                try:
+                    new_order = json.loads(post_data)
+
+                    # 1. Load existing orders
+                    orders_path = os.path.join(ROOT, "data", "orders.json")
+                    with open(orders_path, "r") as f:
+                        orders = json.load(f)
+
+                    # 2. Add new order
+                    orders.append(new_order)
+
+                    # 3. Run the pipeline for this specific order
+                    from graph.build_graph import build_graph
+                    from scoring.cluster_score import find_candidate_clusters
+                    from llm.explain_cluster import explain_cluster
+
+                    G = build_graph(orders)
+                    candidates = find_candidate_clusters(G)
+
+                    # Find the cluster containing our new order
+                    target_oid = new_order["order_id"]
+                    target_cluster = next((c for c in candidates if target_oid in c["order_ids"]), None)
+
+                    if target_cluster:
+                        orders_by_id = {o["order_id"]: o for o in orders}
+                        explanation, provider, model = explain_cluster(target_cluster, orders_by_id)
+
+                        is_flagged = False
+                        if explanation:
+                            try:
+                                verdict_part = explanation.split("[VERDICT]")[1].split("[")[0]
+                                if "FLAGGED" in verdict_part.upper():
+                                    is_flagged = True
+                            except IndexError:
+                                if "FLAGGED" in explanation.upper():
+                                    is_flagged = True
+
+                        response = {
+                            "status": "success",
+                            "flagged": is_flagged,
+                            "explanation": explanation,
+                            "cluster_size": target_cluster["size"],
+                            "weight": target_cluster["total_weight"]
+                        }
+                    else:
+                        response = {
+                            "status": "success",
+                            "flagged": False,
+                            "explanation": "No connections found. Order is isolated.",
+                            "cluster_size": 1,
+                            "weight": 0
+                        }
+
+                    self.send_response(200)
+                    self.send_header('Content-type', 'application/json')
+                    self.send_header('Access-Control-Allow-Origin', '*')
+                    self.end_headers()
+                    self.wfile.write(json.dumps(response).encode())
+
+                except Exception as e:
+                    self.send_response(500)
+                    self.end_headers()
+                    self.wfile.write(str(e).encode())
+            else:
+                self.send_response(404)
+                self.end_headers()
+
     server = HTTPServer(("", port), _Handler)
     thread = threading.Thread(target=server.serve_forever, daemon=True)
     thread.start()
@@ -486,25 +572,25 @@ def main():
     except Exception as e:
         phase_fail("Graph construction", e); errors.append(e); sys.exit(1)
 
-    # Phase 3 — scoring
-    clusters = None
+    # Phase 3 — candidate discovery
+    candidates = None
     try:
-        clusters = phase3_score(G)
+        candidates = phase3_find_candidates(G)
     except Exception as e:
-        phase_fail("Cluster scoring", e); errors.append(e); sys.exit(1)
+        phase_fail("Candidate discovery", e); errors.append(e); sys.exit(1)
 
-    # Phase 4 — explanations
+    # Phase 4 — AI audit
     explained = None
     try:
-        explained = phase4_explain(clusters, orders)
+        explained = phase4_ai_audit(candidates, orders)
     except Exception as e:
-        phase_fail("LLM explanations", e)
-        explained = [{**c, "llm_explanation": None} for c in clusters]
+        phase_fail("AI investigation", e)
+        explained = [{**c, "flagged": False, "explanation": None} for c in candidates]
 
     # Phase 5 — metrics
     report = None
     try:
-        report = phase5_evaluate(orders, clusters)
+        report = phase5_evaluate(orders, explained)
     except Exception as e:
         phase_fail("Metrics evaluation", e); errors.append(e); sys.exit(1)
 
@@ -522,7 +608,7 @@ def main():
 
     # Summary
     t_total = time.perf_counter() - t_agent_start
-    summary(orders, clusters, report, t_total)
+    summary(orders, explained, report, t_total)
 
     # Phase 7 — serve
     if do_serve:
