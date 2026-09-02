@@ -50,49 +50,4 @@ python3 -m tests.near_miss_case
 # then open frontend/index.html in any browser
 ```
 
-## 5-minute pitch script
 
-**[0:00–0:30] The gap.**
-"Thirdwatch already scores every order in real time, and it's genuinely
-good at that. But it has one structural blind spot: a ring of five fake
-accounts, each individually plausible, that deliberately spreads its
-shared attributes — one shared device here, a different shared address
-there — never trips a single-order or single-attribute check, because no
-individual order looks suspicious alone, and no single field connects all
-five directly."
-
-**[0:30–1:30] The mechanism.** Show the graph. Click a flagged cluster —
-walk through the chain: order 0 and 1 share a device, order 1 and 2 share
-an address, order 2 and 3 share a promo code. No pair shares everything.
-"That's the exact pattern a `GROUP BY device_id` can't see, and a
-multi-hop graph traversal catches by construction."
-
-**[1:30–2:15] The numbers, said honestly.** "3,019 orders, 3 known rings
-injected, all 3 caught, zero false positives — and I'll say directly: this
-proves the mechanism works on a known pattern, the same way a security
-researcher validates a detector against a known exploit. It's not proof of
-real-world generalization, which would need real data I don't have access
-to as a student."
-
-**[2:15–3:00] The graceful failure.** Run `tests/near_miss_case.py` live.
-"Two accounts share a home address — could easily be flagged as a ring.
-They're not, because they're old, KYC-verified accounts, and the dampening
-logic in the scoring layer treats that combination as far more consistent
-with an innocent explanation than coordinated fraud."
-
-**[3:00–3:45] Why the LLM doesn't decide anything.** "Every flag decision
-is deterministic graph math, logged and reproducible — that's the audit
-trail a regulator or a fraud analyst actually needs. The LLM only explains
-a decision the scoring layer already made. It can't flip a flag. That
-separation is enforced in the code, not just claimed in this pitch."
-
-**[3:45–4:30] Honest limits + what's next.** "A maximally sophisticated
-ring using fully distinct infrastructure per fake account would beat this
-— though that's expensive enough that most real rings don't bother, which
-is also why device-fingerprinting already catches as much as it does in
-production. This is one additional layer, and the real production path is
-incremental graph updates on something like Neo4j, not a full batch
-recompute every time."
-
-**[4:30–5:00] Close.** "3,019 orders down to 3 clusters worth a human's
-time, fully auditable, strictly human-review, never auto-block."
