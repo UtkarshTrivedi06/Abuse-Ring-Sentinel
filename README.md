@@ -50,7 +50,6 @@ python3 -m tests.near_miss_case
 # then open frontend/index.html in any browser
 ```
 
-## 5-minute pitch script
 
 **[0:00–0:30] The gap.**
 "Thirdwatch already scores every order in real time, and it's genuinely
