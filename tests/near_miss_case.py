@@ -51,7 +51,7 @@ def run_near_miss_test():
             print(f"    {oid}: kyc_verified={o['kyc_verified']}, "
                   f"account_age_days~{(_days_since(o['account_created_at']))}")
 
-        explanation = explain_cluster(c, orders_by_id)
+        explanation, provider, model = explain_cluster(c, orders_by_id)
         print(f"  Explanation: {explanation}")
 
     print("\n" + "=" * 70)

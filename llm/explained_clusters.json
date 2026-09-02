@@ -12,6 +12,14 @@
     "flagged": true,
     "edges": [
       {
+        "a": "ord_ring0_4",
+        "b": "ord_ring0_3",
+        "shared_attrs": [
+          "device_id"
+        ],
+        "weight": 3.0
+      },
+      {
         "a": "ord_ring0_2",
         "b": "ord_ring0_1",
         "shared_attrs": [
@@ -28,23 +36,17 @@
         "weight": 1.5
       },
       {
-        "a": "ord_ring0_3",
-        "b": "ord_ring0_4",
-        "shared_attrs": [
-          "device_id"
-        ],
-        "weight": 3.0
-      },
-      {
-        "a": "ord_ring0_0",
-        "b": "ord_ring0_1",
+        "a": "ord_ring0_1",
+        "b": "ord_ring0_0",
         "shared_attrs": [
           "device_id"
         ],
         "weight": 3.0
       }
     ],
-    "llm_explanation": "[OFFLINE \u2014 not LLM-generated] 5 orders form a tightly connected cluster (weighted score 9.5) linked via device_id, promo_code, shipping_address. Notably, no single pair shares every attribute \u2014 the orders are connected through a CHAIN across device_id, promo_code, shipping_address, which is exactly the pattern a single-attribute check would miss. None of the accounts are KYC-verified. Recommended action: route to a fraud analyst for manual review before dispatch; do not auto-block."
+    "llm_explanation": "[OFFLINE \u2014 not LLM-generated] 5 orders form a tightly connected cluster (weighted score 9.5) linked via device_id, promo_code, shipping_address. Notably, no single pair shares every attribute \u2014 the orders are connected through a CHAIN across device_id, promo_code, shipping_address, which is exactly the pattern a single-attribute check would miss. None of the accounts are KYC-verified. Recommended action: route to a fraud analyst for manual review before dispatch; do not auto-block.",
+    "llm_provider": "offline",
+    "llm_model": null
   },
   {
     "order_ids": [
@@ -59,39 +61,41 @@
     "flagged": true,
     "edges": [
       {
-        "a": "ord_ring2_3",
-        "b": "ord_ring2_4",
+        "a": "ord_ring2_2",
+        "b": "ord_ring2_1",
         "shared_attrs": [
-          "device_id"
+          "shipping_address"
         ],
-        "weight": 3.0
+        "weight": 2.0
       },
       {
-        "a": "ord_ring2_3",
-        "b": "ord_ring2_2",
+        "a": "ord_ring2_2",
+        "b": "ord_ring2_3",
         "shared_attrs": [
           "promo_code"
         ],
         "weight": 1.5
       },
       {
-        "a": "ord_ring2_1",
-        "b": "ord_ring2_0",
+        "a": "ord_ring2_0",
+        "b": "ord_ring2_1",
         "shared_attrs": [
           "device_id"
         ],
         "weight": 3.0
       },
       {
-        "a": "ord_ring2_1",
-        "b": "ord_ring2_2",
+        "a": "ord_ring2_4",
+        "b": "ord_ring2_3",
         "shared_attrs": [
-          "shipping_address"
+          "device_id"
         ],
-        "weight": 2.0
+        "weight": 3.0
       }
     ],
-    "llm_explanation": "[OFFLINE \u2014 not LLM-generated] 5 orders form a tightly connected cluster (weighted score 9.5) linked via device_id, promo_code, shipping_address. Notably, no single pair shares every attribute \u2014 the orders are connected through a CHAIN across device_id, promo_code, shipping_address, which is exactly the pattern a single-attribute check would miss. None of the accounts are KYC-verified. Recommended action: route to a fraud analyst for manual review before dispatch; do not auto-block."
+    "llm_explanation": "[OFFLINE \u2014 not LLM-generated] 5 orders form a tightly connected cluster (weighted score 9.5) linked via device_id, promo_code, shipping_address. Notably, no single pair shares every attribute \u2014 the orders are connected through a CHAIN across device_id, promo_code, shipping_address, which is exactly the pattern a single-attribute check would miss. None of the accounts are KYC-verified. Recommended action: route to a fraud analyst for manual review before dispatch; do not auto-block.",
+    "llm_provider": "offline",
+    "llm_model": null
   },
   {
     "order_ids": [
@@ -138,7 +142,9 @@
         "weight": 3.0
       }
     ],
-    "llm_explanation": "[OFFLINE \u2014 not LLM-generated] 5 orders form a tightly connected cluster (weighted score 9.5) linked via device_id, promo_code, shipping_address. Notably, no single pair shares every attribute \u2014 the orders are connected through a CHAIN across device_id, promo_code, shipping_address, which is exactly the pattern a single-attribute check would miss. None of the accounts are KYC-verified. Recommended action: route to a fraud analyst for manual review before dispatch; do not auto-block."
+    "llm_explanation": "[OFFLINE \u2014 not LLM-generated] 5 orders form a tightly connected cluster (weighted score 9.5) linked via device_id, promo_code, shipping_address. Notably, no single pair shares every attribute \u2014 the orders are connected through a CHAIN across device_id, promo_code, shipping_address, which is exactly the pattern a single-attribute check would miss. None of the accounts are KYC-verified. Recommended action: route to a fraud analyst for manual review before dispatch; do not auto-block.",
+    "llm_provider": "offline",
+    "llm_model": null
   },
   {
     "order_ids": [
@@ -150,15 +156,17 @@
     "flagged": false,
     "edges": [
       {
-        "a": "ord_01829",
-        "b": "ord_01982",
+        "a": "ord_01982",
+        "b": "ord_01829",
         "shared_attrs": [
           "shipping_address"
         ],
         "weight": 2.0
       }
     ],
-    "llm_explanation": null
+    "llm_explanation": null,
+    "llm_provider": null,
+    "llm_model": null
   },
   {
     "order_ids": [
@@ -178,7 +186,9 @@
         "weight": 2.0
       }
     ],
-    "llm_explanation": null
+    "llm_explanation": null,
+    "llm_provider": null,
+    "llm_model": null
   },
   {
     "order_ids": [
@@ -198,7 +208,9 @@
         "weight": 2.0
       }
     ],
-    "llm_explanation": null
+    "llm_explanation": null,
+    "llm_provider": null,
+    "llm_model": null
   },
   {
     "order_ids": [
@@ -210,15 +222,17 @@
     "flagged": false,
     "edges": [
       {
-        "a": "ord_legit0_0",
-        "b": "ord_legit0_1",
+        "a": "ord_legit0_1",
+        "b": "ord_legit0_0",
         "shared_attrs": [
           "shipping_address"
         ],
         "weight": 0.3
       }
     ],
-    "llm_explanation": "[OFFLINE \u2014 not LLM-generated] 2 orders share shipping_address, but the weighted score (0.3) stays below the review threshold \u2014 the accounts involved are older and/or KYC-verified, which is far more consistent with an innocent explanation (e.g. shared household address) than a coordinated ring. Recommended action: no action needed, do not add to review queue."
+    "llm_explanation": "[OFFLINE \u2014 not LLM-generated] 2 orders share shipping_address, but the weighted score (0.3) stays below the review threshold \u2014 the accounts involved are older and/or KYC-verified, which is far more consistent with an innocent explanation (e.g. shared household address) than a coordinated ring. Recommended action: no action needed, do not add to review queue.",
+    "llm_provider": "offline",
+    "llm_model": null
   },
   {
     "order_ids": [
@@ -238,6 +252,8 @@
         "weight": 0.3
       }
     ],
-    "llm_explanation": null
+    "llm_explanation": null,
+    "llm_provider": null,
+    "llm_model": null
   }
 ]

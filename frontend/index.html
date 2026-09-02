@@ -1,584 +1,1123 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Abuse-Ring Sentinel — AI Fraud Intelligence</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://unpkg.com/vis-network@9.1.9/standalone/umd/vis-network.min.js"></script>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-  <style>
-    :root {
-      --bg-void: #04060C;
-      --bg-deep: #080C16;
-      --bg-surface: #111827;
-      --accent-amber: #F59E0B;
-      --accent-teal: #10B981;
-      --accent-violet: #8B5CF6;
-    }
-    body {
-      background-color: var(--bg-void);
-      color: #F1F5F9;
-      font-family: 'Inter', sans-serif;
-      overflow: hidden;
-    }
-    .font-mono { font-family: 'JetBrains Mono', monospace; }
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Abuse-Ring Sentinel — Review Queue</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --void: #0A0C12;
+    --surface: #12151F;
+    --raised: #191D2A;
+    --raised-2: #1F2434;
+    --line: #262B3B;
+    --line-soft: #1C2030;
+    --ink: #E7E9F0;
+    --ink-dim: #7D8299;
+    --ink-faint: #4F5468;
 
-    /* Glassmorphism */
-    .glass-card {
-      background: rgba(15, 23, 42, 0.6);
-      backdrop-filter: blur(12px);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-    .glass-card-hover:hover {
-      border-color: rgba(139, 92, 246, 0.3);
-      background: rgba(15, 23, 42, 0.75);
-      transform: translateY(-2px);
-    }
+    --amber: #F0A93D;
+    --amber-dim: #3A2E17;
 
-    /* Animations */
-    @keyframes pulse-glow {
-      0%, 100% { box-shadow: 0 0 5px rgba(16, 185, 129, 0.4); }
-      50% { box-shadow: 0 0 15px rgba(16, 185, 129, 0.7); }
-    }
-    .live-indicator {
-      animation: pulse-glow 2s infinite;
-    }
+    --teal: #33D6A6;
+    --teal-dim: #163329;
 
-    @keyframes slideUp {
-      from { transform: translateY(100%); opacity: 0; }
-      to { transform: translateY(0); opacity: 1; }
-    }
-    .animate-slide-up {
-      animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-    }
+    /* AI accent — used ONLY for model-generated content, nowhere else. */
+    --ai: #9C8CFF;
+    --ai-dim: #241F3D;
+    --ai-glow: rgba(156,140,255,0.14);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    background: var(--void);
+    color: var(--ink);
+    /* system-font fallback stack so the page is legible even if the Google
+       Fonts request is slow or blocked on a restrictive network */
+    font-family: 'IBM Plex Sans', -apple-system, Segoe UI, Roboto, sans-serif;
+    overflow: hidden;
+  }
+  .mono { font-family: 'IBM Plex Mono', 'Consolas', monospace; }
 
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(4px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    .animate-fade-in {
-      animation: fadeIn 0.3s ease-out forwards;
-    }
+  header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 22px; border-bottom: 1px solid var(--line);
+    background: var(--surface); height: 58px;
+  }
+  .brand { display: flex; align-items: center; gap: 11px; }
+  .brand-mark {
+    width: 30px; height: 30px; border-radius: 7px;
+    background: linear-gradient(135deg, var(--amber), var(--ai));
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .brand-mark svg { width: 16px; height: 16px; }
+  .brand-name { font-size: 14px; font-weight: 600; line-height: 1.2; }
+  .brand-sub { font-size: 11px; color: var(--ink-dim); line-height: 1.2; margin-top: 1px; }
 
-    .tab-active {
-      color: #F1F5F9;
-      border-bottom: 2px solid var(--accent-violet);
-      background: rgba(139, 92, 246, 0.1);
-    }
+  .tabs { display: flex; gap: 3px; background: var(--raised); border-radius: 8px; padding: 3px; border: 1px solid var(--line); }
+  .tab-btn {
+    appearance: none; border: none; background: transparent; color: var(--ink-dim);
+    font-family: inherit; font-size: 12.5px; font-weight: 500; padding: 7px 15px; border-radius: 6px;
+    cursor: pointer; display: flex; align-items: center; gap: 6px; transition: color .15s, background .15s;
+  }
+  .tab-btn svg { width: 14px; height: 14px; opacity: 0.75; }
+  .tab-btn.active { background: var(--raised-2); color: var(--ink); }
+  .tab-btn.active svg { opacity: 1; }
+  .tab-btn:not(.active):hover { color: var(--ink); }
 
-    /* Reasoning Path Flow */
-    .path-step {
-      position: relative;
-      z-index: 1;
-    }
-    .path-step:not(:last-child)::after {
-      content: '→';
-      position: absolute;
-      right: -20px;
-      top: 50%;
-      transform: translateY(-50%);
-      color: rgba(139, 92, 246, 0.4);
-      font-weight: bold;
-      filter: drop-shadow(0 0 2px var(--accent-violet));
-    }
-    @media (max-width: 1024px) {
-      .path-step:not(:last-child)::after {
-        content: '↓';
-        right: auto;
-        bottom: -20px;
-        left: 10px;
-        top: auto;
-        transform: none;
-      }
-    }
+  .status-chip {
+    display: flex; align-items: center; gap: 6px; font-size: 11.5px; font-weight: 500;
+    padding: 5px 11px; border-radius: 20px; border: 1px solid;
+  }
+  .status-chip.live { color: var(--teal); background: var(--teal-dim); border-color: rgba(51,214,166,0.25); }
+  .status-chip.offline { color: var(--ink-dim); background: var(--raised-2); border-color: var(--line); }
+  .status-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+  @keyframes pulse-dot { 0%,100% { opacity: 1; } 50% { opacity: .35; } }
+  .status-chip.live .status-dot { animation: pulse-dot 2s ease-in-out infinite; }
 
-    /* Graph Blueprint Grid */
-    .graph-grid {
-      background-image:
-        linear-gradient(rgba(139, 92, 246, 0.05) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(139, 92, 246, 0.05) 1px, transparent 1px);
-      background-size: 40px 40px;
-      background-position: center center;
-    }
-    .graph-overlay-radial {
-      background: radial-gradient(circle at center, transparent 0%, var(--bg-void) 80%);
-    }
+  .shell { height: calc(100vh - 58px); position: relative; }
+  .panel { display: none; height: 100%; }
+  .panel.active { display: flex; flex-direction: column; }
 
-    #graph-container {
-      height: 100%;
-      width: 100%;
-      background: transparent;
-    }
+  /* ================= TAB 1 — REVIEW QUEUE ================= */
+  #panel-dashboard { padding: 18px 22px; overflow-y: auto; gap: 16px; }
 
-    .panel-collapsed {
-      max-height: 60px !important;
-      overflow: hidden;
-    }
-  </style>
+  .kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  .kpi-card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; display: flex; flex-direction: column; gap: 7px; }
+  .kpi-top { display: flex; align-items: center; justify-content: space-between; }
+  .kpi-icon { width: 26px; height: 26px; border-radius: 6px; display: flex; align-items: center; justify-content: center; }
+  .kpi-icon svg { width: 14px; height: 14px; }
+  .kpi-icon.neutral { background: var(--raised-2); color: var(--ink-dim); }
+  .kpi-icon.amber { background: var(--amber-dim); color: var(--amber); }
+  .kpi-icon.teal { background: var(--teal-dim); color: var(--teal); }
+  .kpi-label { font-size: 11.5px; color: var(--ink-dim); }
+  .kpi-value { font-family: 'IBM Plex Mono', monospace; font-size: 23px; font-weight: 600; }
+  .kpi-value.amber { color: var(--amber); } .kpi-value.teal { color: var(--teal); }
+  .kpi-note { font-size: 10.5px; color: var(--ink-faint); }
+
+  .main-grid { display: grid; grid-template-columns: 1fr 380px; gap: 14px; flex: 1; min-height: 0; }
+  .left-col { display: flex; flex-direction: column; gap: 14px; min-height: 0; }
+
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; display: flex; flex-direction: column; overflow: hidden; }
+  .card-head { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-bottom: 1px solid var(--line); flex-shrink: 0; }
+  .card-head h2 { font-size: 13px; font-weight: 600; }
+  .card-head .count { font-size: 11px; color: var(--ink-dim); }
+
+  /* ---- Agent Run Log (real, not simulated) ---- */
+  #run-log-card { flex-shrink: 0; }
+  #run-log-body { padding: 10px 16px 14px; display: flex; flex-direction: column; gap: 7px; max-height: 140px; overflow-y: auto; }
+  .log-row { display: flex; align-items: center; gap: 9px; font-size: 11.5px; }
+  .log-icon { width: 14px; height: 14px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+  .log-icon.ok { color: var(--teal); } .log-icon.running { color: var(--amber); }
+  .log-name { color: var(--ink); min-width: 130px; flex-shrink: 0; }
+  .log-detail { color: var(--ink-dim); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .log-time { color: var(--ink-faint); font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; flex-shrink: 0; }
+
+  /* ---- Review queue table ---- */
+  #table-card { flex: 1; min-height: 0; }
+  table { width: 100%; border-collapse: collapse; }
+  thead th {
+    text-align: left; font-size: 10.5px; font-weight: 500; color: var(--ink-faint);
+    padding: 9px 16px; border-bottom: 1px solid var(--line-soft); cursor: pointer; user-select: none; white-space: nowrap;
+  }
+  thead th:hover { color: var(--ink-dim); }
+  thead th.sort-active { color: var(--ink); }
+  tbody tr { border-bottom: 1px solid var(--line-soft); cursor: pointer; transition: background .12s; }
+  tbody tr:hover { background: var(--raised); }
+  tbody tr.selected { background: var(--raised-2); }
+  tbody tr.selected td:first-child { box-shadow: inset 3px 0 0 var(--ai); }
+  td { padding: 9px 16px; font-size: 12.5px; vertical-align: middle; }
+
+  .status-pill { display: inline-flex; align-items: center; gap: 5px; font-size: 10.5px; font-weight: 600; padding: 3px 9px; border-radius: 4px; font-family: 'IBM Plex Mono', monospace; }
+  .status-pill.flagged { background: var(--amber-dim); color: var(--amber); }
+  .status-pill.cleared { background: var(--teal-dim); color: var(--teal); }
+  .status-pill .dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+
+  .attr-chip { display: inline-block; font-size: 10px; font-family: 'IBM Plex Mono', monospace; color: var(--ink-dim); background: var(--raised-2); border: 1px solid var(--line); padding: 2px 6px; border-radius: 4px; margin: 1px 3px 1px 0; }
+  .weight-cell { display: flex; align-items: center; gap: 8px; }
+  .weight-bar { width: 44px; height: 4px; border-radius: 2px; background: var(--line-soft); overflow: hidden; }
+  .weight-bar-fill { height: 100%; border-radius: 2px; }
+  .weight-num { font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; color: var(--ink-dim); }
+  .order-count { color: var(--ink-dim); font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; }
+
+  /* ---- AI panel ---- */
+  .ai-panel { background: linear-gradient(180deg, var(--ai-glow), transparent 160px), var(--surface); border: 1px solid rgba(156,140,255,0.28); border-radius: 10px; display: flex; flex-direction: column; overflow: hidden; }
+  .ai-panel-head { padding: 14px 16px 11px; border-bottom: 1px solid rgba(156,140,255,0.18); flex-shrink: 0; }
+  .ai-label-row { display: flex; align-items: center; gap: 7px; margin-bottom: 3px; }
+  .ai-pulse { width: 7px; height: 7px; border-radius: 50%; background: var(--ai); animation: ai-ping 2.2s ease-out infinite; }
+  @keyframes ai-ping { 0% { box-shadow: 0 0 0 0 rgba(156,140,255,0.55); } 70% { box-shadow: 0 0 0 7px rgba(156,140,255,0); } 100% { box-shadow: 0 0 0 0 rgba(156,140,255,0); } }
+  .ai-label { font-size: 12.5px; font-weight: 600; color: var(--ai); }
+  .ai-sub { font-size: 10.5px; color: var(--ink-dim); }
+  .provider-chip { display: inline-flex; align-items: center; gap: 5px; margin-top: 8px; font-size: 10.5px; font-family: 'IBM Plex Mono', monospace; color: var(--ai); background: var(--ai-dim); border: 1px solid rgba(156,140,255,0.3); padding: 4px 9px; border-radius: 20px; }
+  .provider-chip.is-offline { color: var(--ink-dim); background: var(--raised-2); border-color: var(--line); }
+
+  .ai-body { padding: 14px 16px; flex: 1; overflow-y: auto; }
+  .ai-cluster-meta { display: flex; gap: 12px; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--line-soft); }
+  .ai-meta-item .meta-label { font-size: 10px; color: var(--ink-faint); margin-bottom: 2px; }
+  .ai-meta-item .meta-value { font-family: 'IBM Plex Mono', monospace; font-size: 13px; }
+
+  /* structured reasoning trace — real content parsed from the model's own
+     [OBSERVATION]/[ANALYSIS]/[VERDICT]/[RECOMMENDED ACTION] sections */
+  .reason-step { display: flex; gap: 10px; margin-bottom: 12px; opacity: 0; animation: ai-reveal .4s ease forwards; }
+  .reason-step:nth-child(1) { animation-delay: .05s; } .reason-step:nth-child(2) { animation-delay: .15s; }
+  .reason-step:nth-child(3) { animation-delay: .25s; } .reason-step:nth-child(4) { animation-delay: .35s; }
+  @keyframes ai-reveal { from { opacity: 0; transform: translateY(3px); } to { opacity: 1; transform: translateY(0); } }
+  .reason-marker { flex-shrink: 0; display: flex; flex-direction: column; align-items: center; }
+  .reason-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--ai); margin-top: 4px; }
+  .reason-line { width: 1px; flex: 1; background: var(--line); margin-top: 2px; }
+  .reason-content { flex: 1; }
+  .reason-title { font-size: 10px; font-weight: 600; letter-spacing: 0.3px; color: var(--ai); text-transform: uppercase; margin-bottom: 3px; }
+  .reason-text { font-size: 12.5px; line-height: 1.6; color: var(--ink); }
+
+  .ai-footnote { margin-top: 12px; padding-top: 11px; border-top: 1px solid var(--line-soft); font-size: 10.5px; color: var(--ink-faint); line-height: 1.5; }
+  .ai-order-list { margin-top: 12px; }
+  .ai-order-list .sub-label { font-size: 10.5px; color: var(--ink-faint); margin-bottom: 7px; }
+  .ai-order-row { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--ink-dim); border-bottom: 1px solid var(--line-soft); }
+  .ai-order-row:last-child { border-bottom: none; }
+  .ai-order-row .oid { color: var(--ink); }
+  .kyc-yes { color: var(--teal); } .kyc-no { color: var(--amber); }
+  .empty-ai { padding: 36px 20px; text-align: center; color: var(--ink-faint); font-size: 12.5px; }
+
+  /* ================= TAB 2 — NETWORK GRAPH ================= */
+  #panel-graph { position: relative; }
+  #graph-canvas { width: 100%; height: 100%; background: var(--void); }
+  .graph-legend { position: absolute; top: 18px; left: 18px; z-index: 5; background: rgba(18,21,31,0.9); border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; font-size: 11px; color: var(--ink-dim); line-height: 2; }
+  .legend-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 7px; }
+  .graph-hint { position: absolute; bottom: 18px; left: 18px; z-index: 5; font-size: 11px; color: var(--ink-faint); font-family: 'IBM Plex Mono', monospace; }
+  .graph-fallback { position: absolute; inset: 0; display: none; align-items: center; justify-content: center; flex-direction: column; gap: 10px; text-align: center; padding: 40px; }
+  .graph-fallback.visible { display: flex; }
+  .graph-fallback h3 { font-size: 14px; color: var(--ink); }
+  .graph-fallback p { font-size: 12.5px; color: var(--ink-dim); max-width: 420px; line-height: 1.6; }
+
+  #hover-tooltip { position: fixed; z-index: 50; pointer-events: none; background: var(--raised-2); border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; max-width: 260px; box-shadow: 0 8px 24px rgba(0,0,0,0.4); opacity: 0; transform: translateY(4px); transition: opacity .1s, transform .1s; }
+  #hover-tooltip.visible { opacity: 1; transform: translateY(0); }
+  #hover-tooltip .tt-kind { font-size: 9.5px; font-weight: 600; letter-spacing: 0.4px; color: var(--ink-faint); margin-bottom: 6px; }
+  #hover-tooltip .tt-title { font-size: 13px; font-weight: 600; margin-bottom: 6px; font-family: 'IBM Plex Mono', monospace; }
+  #hover-tooltip .tt-row { display: flex; justify-content: space-between; gap: 14px; font-size: 11px; color: var(--ink-dim); padding: 2px 0; }
+  #hover-tooltip .tt-row span:last-child { color: var(--ink); font-family: 'IBM Plex Mono', monospace; }
+  #hover-tooltip .tt-verdict { margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--line); font-size: 10.5px; line-height: 1.5; }
+  #hover-tooltip .tt-verdict.flagged { color: var(--amber); } #hover-tooltip .tt-verdict.cleared { color: var(--teal); }
+</style>
 </head>
-<body class="h-screen flex flex-col">
+<body>
 
-  <!-- Top Navigation Bar -->
-  <nav class="h-16 border-b border-white/10 bg-[#080C16]/80 backdrop-blur-md flex items-center justify-between px-6 z-50 flex-shrink-0">
-    <div class="flex items-center gap-3">
-      <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-violet-500 to-amber-500 flex items-center justify-center text-xl shadow-lg shadow-violet-500/20">🛡️</div>
-      <div class="transition-opacity duration-500">
-        <h1 class="text-sm font-bold tracking-tight leading-none">Abuse-Ring Sentinel</h1>
-        <p class="text-[10px] font-mono text-slate-500 uppercase tracking-widest">AI-Powered Fraud Intelligence</p>
-      </div>
+<header>
+  <div class="brand">
+    <div class="brand-mark">
+      <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="6" cy="6" r="2"/><circle cx="18" cy="6" r="2"/><circle cx="12" cy="18" r="2"/>
+        <path d="M7.5 7 11 16M16.5 7 13 16M8 6h8"/>
+      </svg>
     </div>
-
-    <div class="flex items-center gap-6">
-      <div class="flex items-center gap-4 text-xs font-medium">
-        <div class="flex items-center gap-2 px-3 py-1 rounded-full bg-teal-500/10 border border-teal-500/20 text-teal-400">
-          <span class="w-2 h-2 rounded-full bg-teal-500 live-indicator"></span>
-          System Live
-        </div>
-        <div class="text-slate-400 font-mono" id="current-batch">Batch: #A19</div>
-      </div>
-      <div class="h-8 w-px bg-white/10"></div>
-      <div class="flex bg-slate-900 rounded-lg p-1 border border-white/5">
-        <button onclick="switchTab('dashboard')" id="tab-dashboard" class="px-4 py-1.5 text-xs font-medium rounded-md transition-all tab-active">Dashboard</button>
-        <button onclick="switchTab('graph')" id="tab-graph" class="px-4 py-1.5 text-xs font-medium rounded-md transition-all text-slate-400 hover:text-slate-200">Graph Analysis</button>
-      </div>
+    <div>
+      <div class="brand-name">Abuse-Ring Sentinel</div>
+      <div class="brand-sub">Network fraud intelligence — batch #A19</div>
     </div>
-  </nav>
+  </div>
 
-  <!-- Main Content Area -->
-  <main class="flex-1 overflow-hidden relative flex flex-col">
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="dashboard">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
+      Review Queue
+    </button>
+    <button class="tab-btn" data-tab="graph">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="6" r="2.2"/><circle cx="19" cy="6" r="2.2"/><circle cx="12" cy="18" r="2.2"/><path d="M6.8 7.3 10.5 16.5M17.2 7.3 13.5 16.5M7 6h10"/></svg>
+      Network Graph
+    </button>
+  </div>
 
-    <!-- TAB 1: DASHBOARD -->
-    <div id="view-dashboard" class="flex-1 flex flex-col p-6 gap-6 overflow-y-auto">
+  <div class="status-chip offline" id="status-chip"><span class="status-dot"></span><span id="status-label">Loading…</span></div>
+</header>
 
-      <!-- Top Row: Stats -->
-      <div class="grid grid-cols-1 md:grid-cols-4 gap-4 flex-shrink-0">
-        <div class="glass-card p-4 rounded-xl glass-card-hover cursor-pointer">
-          <p class="text-[10px] font-mono text-slate-400 uppercase tracking-wider">Orders Scanned</p>
-          <p class="text-2xl font-bold mt-1" id="stat-total">—</p>
+<div class="shell">
+
+  <!-- ================= TAB 1 ================= -->
+  <div id="panel-dashboard" class="panel active">
+    <div class="kpi-row" id="kpi-row"></div>
+
+    <div class="main-grid">
+      <div class="left-col">
+        <div class="card" id="run-log-card">
+          <div class="card-head"><h2>Agent run log</h2><span class="count" id="run-log-count"></span></div>
+          <div id="run-log-body"></div>
         </div>
-        <div class="glass-card p-4 rounded-xl border-l-4 border-l-amber-500 glass-card-hover cursor-pointer">
-          <p class="text-[10px] font-mono text-slate-400 uppercase tracking-wider">Rings Flagged</p>
-          <p class="text-2xl font-bold mt-1 text-amber-500" id="stat-flagged">—</p>
-        </div>
-        <div class="glass-card p-4 rounded-xl glass-card-hover cursor-pointer">
-          <p class="text-[10px] font-mono text-slate-400 uppercase tracking-wider">Recall Rate</p>
-          <p class="text-2xl font-bold mt-1" id="stat-recall">—</p>
-        </div>
-        <div class="glass-card p-4 rounded-xl border-l-4 border-l-teal-500 glass-card-hover cursor-pointer">
-          <p class="text-[10px] font-mono text-slate-400 uppercase tracking-wider">Queue Reduction</p>
-          <p class="text-2xl font-bold mt-1 text-teal-500" id="stat-reduction">—</p>
+
+        <div class="card" id="table-card">
+          <div class="card-head"><h2>Review queue</h2><span class="count" id="table-count">—</span></div>
+          <div style="overflow-y:auto; flex:1;">
+            <table>
+              <thead>
+                <tr>
+                  <th data-sort="flagged">Status</th>
+                  <th data-sort="size">Orders</th>
+                  <th data-sort="total_weight" class="sort-active">Weight</th>
+                  <th>Shared via</th>
+                  <th>AI verdict</th>
+                </tr>
+              </thead>
+              <tbody id="table-body"></tbody>
+            </table>
+          </div>
         </div>
       </div>
 
-      <!-- Middle Section: Analysis Feed & Queue -->
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 flex-1 min-h-0">
-
-        <!-- AI Analysis Feed -->
-        <div class="lg:col-span-4 flex flex-col gap-3 h-[500px]">
-          <div class="flex items-center justify-between px-1">
-            <h3 class="text-xs font-semibold text-slate-400 uppercase tracking-widest flex items-center gap-2">
-              <span class="w-2 h-2 rounded-full bg-violet-500"></span>
-              AI Analysis Feed
-            </h3>
-            <span class="text-[10px] font-mono text-violet-400 bg-violet-500/10 px-2 py-0.5 rounded border border-violet-500/20">REAL-TIME</span>
-          </div>
-          <div id="ai-feed" class="flex-1 glass-card rounded-xl p-4 font-mono text-[11px] leading-relaxed overflow-y-auto bg-black/40 border-white/5">
-            <div class="text-slate-500 mb-2 italic">// Initializing Neural Sentinel Analysis...</div>
-          </div>
+      <div class="ai-panel">
+        <div class="ai-panel-head">
+          <div class="ai-label-row"><span class="ai-pulse"></span><span class="ai-label">AI Analysis</span></div>
+          <div class="ai-sub">Explains the scoring system's decision — does not make it</div>
+          <div class="provider-chip" id="provider-chip">—</div>
         </div>
-
-        <!-- Priority Review Queue -->
-        <div class="lg:col-span-8 flex flex-col gap-3 h-[500px]">
-          <div class="flex items-center justify-between px-1">
-            <h3 class="text-xs font-semibold text-slate-400 uppercase tracking-widest">Priority Review Queue</h3>
-            <span class="text-[10px] font-mono text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20" id="queue-count">0 flagged</span>
-          </div>
-          <div class="glass-card rounded-xl overflow-hidden flex-1">
-            <div class="overflow-y-auto h-full">
-              <table class="w-full text-left text-xs">
-                <thead class="bg-white/5 border-b border-white/10 sticky top-0 z-10">
-                  <tr class="text-slate-400">
-                    <th class="px-4 py-3 font-medium">Cluster ID</th>
-                    <th class="px-4 py-3 font-medium">Risk Score</th>
-                    <th class="px-4 py-3 font-medium">Size</th>
-                    <th class="px-4 py-3 font-medium">Primary Trigger</th>
-                    <th class="px-4 py-3 font-medium text-right">Action</th>
-                  </tr>
-                </thead>
-                <tbody id="review-queue-body" class="divide-y divide-white/5">
-                  <!-- Rows injected by JS -->
-                </tbody>
-              </table>
-            </div>
-          </div>
+        <div class="ai-body" id="ai-body">
+          <div class="empty-ai">Select a cluster from the review queue to see its AI-generated analyst summary.</div>
         </div>
       </div>
     </div>
+  </div>
 
-    <!-- TAB 2: GRAPH ANALYSIS -->
-    <div id="view-graph" class="hidden h-full relative">
-      <div class="absolute inset-0 graph-grid pointer-events-none"></div>
-      <div class="absolute inset-0 graph-overlay-radial pointer-events-none"></div>
-      <div id="graph-container" class="relative z-10"></div>
-      <div class="absolute top-4 left-4 pointer-events-none z-20">
-        <div class="glass-card px-3 py-2 rounded-lg border border-white/10">
-          <p class="text-[10px] font-mono text-slate-400 uppercase tracking-widest">Topology Analysis</p>
-          <p class="text-xs font-medium text-slate-200">Network Fraud Mapping</p>
-        </div>
-      </div>
-      <!-- Floating Node Tooltip -->
-      <div id="node-tooltip" class="absolute hidden z-[100] glass-card p-3 rounded-lg border border-violet-500/30 pointer-events-none w-48 transition-opacity duration-200">
-        <div class="flex items-center justify-between mb-2">
-          <span class="text-[10px] font-mono text-slate-400">ORDER_ID</span>
-          <span id="tooltip-kyc" class="text-[10px] px-1.5 py-0.5 rounded border"></span>
-        </div>
-        <p id="tooltip-id" class="text-xs font-bold font-mono mb-1 truncate"></p>
-        <div class="flex justify-between items-center mt-2 pt-2 border-t border-white/10">
-          <span class="text-[10px] text-slate-400">Value</span>
-          <span id="tooltip-value" class="text-xs font-bold text-slate-200"></span>
-        </div>
-      </div>
+  <!-- ================= TAB 2 ================= -->
+  <div id="panel-graph" class="panel">
+    <div class="graph-legend">
+      <div><span class="legend-dot" style="background:var(--amber)"></span>Flagged cluster</div>
+      <div><span class="legend-dot" style="background:var(--teal)"></span>Cleared / below threshold</div>
+      <div><span class="legend-dot" style="background:#445066"></span>Unconnected order</div>
     </div>
-
-    <!-- PERSISTENT AI INSIGHT PANEL -->
-    <div id="global-insight-panel" class="hidden border-t border-white/10 bg-[#080C16]/90 backdrop-blur-xl transition-all duration-500 ease-in-out flex-shrink-0 relative z-40">
-      <div class="max-w-7xl mx-auto p-6">
-        <div class="flex items-center justify-between mb-4">
-          <div class="flex items-center gap-3">
-            <button onclick="toggleInsightPanel()" class="p-1 rounded-md hover:bg-white/5 transition-colors text-slate-400 hover:text-white">
-              <svg id="collapse-icon" class="w-4 h-4 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-            </button>
-            <h3 class="text-xs font-semibold text-slate-400 uppercase tracking-widest flex items-center gap-2">
-              <span class="w-2 h-2 rounded-full bg-violet-500"></span>
-              AI Insight Panel
-            </h3>
-          </div>
-          <div class="flex items-center gap-3">
-             <span class="text-[10px] font-mono text-slate-500">Confidence: <span id="insight-confidence">—</span></span>
-             <span class="px-2 py-0.5 rounded-full bg-violet-500/20 border border-violet-500/30 text-violet-400 text-[10px] font-bold">AI-POWERED</span>
-             <button onclick="clearSelection()" class="p-1 rounded-md hover:bg-red-500/10 text-slate-500 hover:text-red-400 transition-colors">
-               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-             </button>
-          </div>
-        </div>
-
-        <div id="ai-insight-card" class="glass-card rounded-2xl p-6 border-t-4 border-t-violet-500 transition-all duration-500 overflow-hidden">
-          <div id="insight-empty" class="flex flex-col items-center justify-center text-slate-500 gap-3 py-8">
-            <svg class="w-10 h-10 opacity-20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.548a3 3 0 00-4.242 0L13.5 14.5"></path></svg>
-            <p class="text-sm">Select a cluster to generate AI reasoning</p>
-          </div>
-          <div id="insight-content" class="hidden space-y-6 animate-slide-up">
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <div class="lg:col-span-2">
-                <p class="text-xs font-mono text-violet-400 mb-2 uppercase tracking-wider">Analyst Explanation</p>
-                <p id="insight-explanation" class="text-sm leading-relaxed text-slate-200"></p>
-              </div>
-              <div class="bg-black/30 rounded-xl p-4 border border-white/5">
-                <p class="text-xs font-mono text-slate-400 mb-3 uppercase tracking-wider">Reasoning Path</p>
-                <div id="reasoning-path" class="flex flex-wrap gap-y-6 gap-x-4">
-                  <!-- Path steps injected by JS -->
-                </div>
-              </div>
-            </div>
-            <div class="border-t border-white/10 pt-4">
-              <p class="text-xs font-mono text-slate-400 mb-3 uppercase tracking-wider">Member Orders</p>
-              <div class="overflow-x-auto">
-                <table class="w-full text-left text-[11px] font-mono">
-                  <thead class="text-slate-500 border-b border-white/5">
-                    <tr>
-                      <th class="pb-2 font-medium">Order ID</th>
-                      <th class="pb-2 font-medium">KYC</th>
-                      <th class="pb-2 font-medium">Value</th>
-                      <th class="pb-2 font-medium">Created</th>
-                    </tr>
-                  </thead>
-                  <tbody id="insight-orders-body" class="divide-y divide-white/5"></tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+    <div class="graph-hint">Hover a node or connection for details · click to open in Review Queue</div>
+    <div id="graph-canvas"></div>
+    <div class="graph-fallback" id="graph-fallback">
+      <h3>Graph library didn't load</h3>
+      <p>The visualization library couldn't be reached — this is usually a blocked or slow network, not a bug in the data. Everything else on this dashboard works independently of this.</p>
     </div>
+  </div>
 
-  </main>
+</div>
 
-  <script>
-    (function() {
-      const APP_STATE = {
-        currentTab: 'dashboard',
-        clusters: [],
-        audit: {},
-        selectedClusterIdx: null,
-        isPanelCollapsed: false
-      };
+<div id="hover-tooltip"></div>
 
-      // --- TAB MANAGEMENT ---
-      window.switchTab = function(tabId) {
-        APP_STATE.currentTab = tabId;
-        document.getElementById('view-dashboard').classList.toggle('hidden', tabId !== 'dashboard');
-        document.getElementById('view-graph').classList.toggle('hidden', tabId !== 'graph');
-        document.getElementById('tab-dashboard').className = `px-4 py-1.5 text-xs font-medium rounded-md transition-all ${tabId === 'dashboard' ? 'tab-active' : 'text-slate-400 hover:text-slate-200'}`;
-        document.getElementById('tab-graph').className = `px-4 py-1.5 text-xs font-medium rounded-md transition-all ${tabId === 'graph' ? 'tab-active' : 'text-slate-400 hover:text-slate-200'}`;
-        if (tabId === 'graph') window.dispatchEvent(new Event('resize'));
-      };
+<!-- Optional Supabase read path: only activates if configured below.
+     Falls back to local dashboard_data.json automatically otherwise. -->
+<script>
+  window.SUPABASE_URL = "";   // paste your Supabase project URL here to enable live DB reads
+  window.SUPABASE_ANON_KEY = ""; // paste your Supabase anon/public key here
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" onerror="window.__supabaseLoadFailed=true"></script>
 
-      // --- PANEL MANAGEMENT ---
-      window.toggleInsightPanel = function() {
-        APP_STATE.isPanelCollapsed = !APP_STATE.isPanelCollapsed;
-        const card = document.getElementById('ai-insight-card');
-        const icon = document.getElementById('collapse-icon');
-
-        if (APP_STATE.isPanelCollapsed) {
-          card.classList.add('panel-collapsed');
-          icon.style.transform = 'rotate(180deg)';
-        } else {
-          card.classList.remove('panel-collapsed');
-          icon.style.transform = 'rotate(0deg)';
+<script>
+const INLINE_PAYLOAD = {
+  "clusters": [
+    {
+      "order_ids": [
+        "ord_ring0_0",
+        "ord_ring0_1",
+        "ord_ring0_2",
+        "ord_ring0_3",
+        "ord_ring0_4"
+      ],
+      "size": 5,
+      "total_weight": 9.5,
+      "flagged": true,
+      "edges": [
+        {
+          "a": "ord_ring0_3",
+          "b": "ord_ring0_4",
+          "shared_attrs": [
+            "device_id"
+          ],
+          "weight": 3.0
+        },
+        {
+          "a": "ord_ring0_3",
+          "b": "ord_ring0_2",
+          "shared_attrs": [
+            "promo_code"
+          ],
+          "weight": 1.5
+        },
+        {
+          "a": "ord_ring0_0",
+          "b": "ord_ring0_1",
+          "shared_attrs": [
+            "device_id"
+          ],
+          "weight": 3.0
+        },
+        {
+          "a": "ord_ring0_1",
+          "b": "ord_ring0_2",
+          "shared_attrs": [
+            "shipping_address"
+          ],
+          "weight": 2.0
         }
-      };
-
-      window.clearSelection = function() {
-        APP_STATE.selectedClusterIdx = null;
-        document.getElementById('global-insight-panel').classList.add('hidden');
-        document.getElementById('insight-empty').classList.remove('hidden');
-        document.getElementById('insight-content').classList.add('hidden');
-        document.querySelectorAll('#review-queue-body tr').forEach(row => {
-          row.classList.remove('bg-violet-500/10', 'border-l-2', 'border-l-violet-500');
-        });
-        if (window.network) {
-          visNodes.update(visNodes.get().map(n => ({ id: n.id, size: 10, opacity: 1.0 })));
-        }
-      };
-
-      // --- DATA LOADING ---
-      async function loadData() {
-        try {
-          const res = await fetch('dashboard_data.json');
-          if (!res.ok) throw new Error('JSON load failed');
-          const data = await res.json();
-          APP_STATE.clusters = data.clusters;
-          APP_STATE.audit = data.audit;
-          initDashboard();
-        } catch (e) {
-          console.error('Data loading error:', e);
-          document.getElementById('ai-feed').innerHTML += `<div class="text-red-400">Error loading intelligence payload. System offline.</div>`;
+      ],
+      "explanation": "[OFFLINE \u2014 not LLM-generated] 5 orders form a tightly connected cluster (weighted score 9.5) linked via device_id, promo_code, shipping_address. Notably, no single pair shares every attribute \u2014 the orders are connected through a CHAIN across device_id, promo_code, shipping_address, which is exactly the pattern a single-attribute check would miss. None of the accounts are KYC-verified. Recommended action: route to a fraud analyst for manual review before dispatch; do not auto-block.",
+      "llm_provider": "offline",
+      "llm_model": null,
+      "orders": {
+        "ord_ring0_0": {
+          "kyc_verified": false,
+          "order_value": 4973.94,
+          "account_created_at": "2026-08-31",
+          "shipping_address": "Flat 716, Building 17, Koregaon Park, Mumbai"
+        },
+        "ord_ring0_1": {
+          "kyc_verified": false,
+          "order_value": 2975.65,
+          "account_created_at": "2026-08-31",
+          "shipping_address": "Flat 736, Building 9, Kothrud, Delhi"
+        },
+        "ord_ring0_2": {
+          "kyc_verified": false,
+          "order_value": 1128.81,
+          "account_created_at": "2026-08-31",
+          "shipping_address": "Flat 736, Building 9, Kothrud, Delhi"
+        },
+        "ord_ring0_3": {
+          "kyc_verified": false,
+          "order_value": 4531.5,
+          "account_created_at": "2026-08-31",
+          "shipping_address": "Flat 810, Building 22, Koregaon Park, Delhi"
+        },
+        "ord_ring0_4": {
+          "kyc_verified": false,
+          "order_value": 2374.24,
+          "account_created_at": "2026-08-31",
+          "shipping_address": "Flat 574, Building 37, Hinjewadi, Mumbai"
         }
       }
-
-      function initDashboard() {
-        const { audit, clusters } = APP_STATE;
-        document.getElementById('stat-total').textContent = audit.total_orders_scanned.toLocaleString();
-        document.getElementById('stat-flagged').textContent = audit.clusters_flagged;
-        document.getElementById('stat-recall').textContent = (audit.recall_on_injected_rings * 100).toFixed(0) + '%';
-        document.getElementById('stat-reduction').textContent = audit.review_queue_reduction.reduction_pct.toFixed(1) + '%';
-
-        const flagged = clusters.filter(c => c.flagged);
-        document.getElementById('queue-count').textContent = flagged.length + ' flagged';
-
-        const queueBody = document.getElementById('review-queue-body');
-        queueBody.innerHTML = '';
-
-        flagged.forEach((c, idx) => {
-          const realIdx = clusters.indexOf(c);
-          const trigger = [...new Set(c.edges.flatMap(e => e.shared_attrs))][0] || 'N/A';
-          const row = document.createElement('tr');
-          row.className = 'cursor-pointer hover:bg-white/5 transition-all duration-200 group';
-          row.dataset.idx = realIdx;
-          row.onclick = () => selectCluster(realIdx);
-          row.innerHTML = `
-            <td class="px-4 py-3 font-mono text-slate-300 group-hover:text-white">C-${realIdx}</td>
-            <td class="px-4 py-3 font-mono text-amber-500 font-bold">${c.total_weight}</td>
-            <td class="px-4 py-3 text-slate-400">${c.size} orders</td>
-            <td class="px-4 py-3">
-              <span class="px-2 py-0.5 rounded bg-white/5 border border-white/10 text-[10px] font-mono">${trigger.replace(/_/g, ' ')}</span>
-            </td>
-            <td class="px-4 py-3 text-right">
-              <button class="text-[10px] font-bold text-violet-400 hover:text-violet-300 uppercase tracking-wider">Analyze</button>
-            </td>
-          `;
-          queueBody.appendChild(row);
-        });
-
-        buildGraph();
-        simulateAIFeed(flagged);
+    },
+    {
+      "order_ids": [
+        "ord_ring2_0",
+        "ord_ring2_1",
+        "ord_ring2_2",
+        "ord_ring2_3",
+        "ord_ring2_4"
+      ],
+      "size": 5,
+      "total_weight": 9.5,
+      "flagged": true,
+      "edges": [
+        {
+          "a": "ord_ring2_0",
+          "b": "ord_ring2_1",
+          "shared_attrs": [
+            "device_id"
+          ],
+          "weight": 3.0
+        },
+        {
+          "a": "ord_ring2_1",
+          "b": "ord_ring2_2",
+          "shared_attrs": [
+            "shipping_address"
+          ],
+          "weight": 2.0
+        },
+        {
+          "a": "ord_ring2_4",
+          "b": "ord_ring2_3",
+          "shared_attrs": [
+            "device_id"
+          ],
+          "weight": 3.0
+        },
+        {
+          "a": "ord_ring2_3",
+          "b": "ord_ring2_2",
+          "shared_attrs": [
+            "promo_code"
+          ],
+          "weight": 1.5
+        }
+      ],
+      "explanation": "[OFFLINE \u2014 not LLM-generated] 5 orders form a tightly connected cluster (weighted score 9.5) linked via device_id, promo_code, shipping_address. Notably, no single pair shares every attribute \u2014 the orders are connected through a CHAIN across device_id, promo_code, shipping_address, which is exactly the pattern a single-attribute check would miss. None of the accounts are KYC-verified. Recommended action: route to a fraud analyst for manual review before dispatch; do not auto-block.",
+      "llm_provider": "offline",
+      "llm_model": null,
+      "orders": {
+        "ord_ring2_0": {
+          "kyc_verified": false,
+          "order_value": 4130.45,
+          "account_created_at": "2026-08-31",
+          "shipping_address": "Flat 636, Building 2, Koregaon Park, Mumbai"
+        },
+        "ord_ring2_1": {
+          "kyc_verified": false,
+          "order_value": 1011.64,
+          "account_created_at": "2026-08-31",
+          "shipping_address": "Flat 929, Building 40, Hinjewadi, Chennai"
+        },
+        "ord_ring2_2": {
+          "kyc_verified": false,
+          "order_value": 2674.24,
+          "account_created_at": "2026-08-31",
+          "shipping_address": "Flat 929, Building 40, Hinjewadi, Chennai"
+        },
+        "ord_ring2_3": {
+          "kyc_verified": false,
+          "order_value": 1623.04,
+          "account_created_at": "2026-08-31",
+          "shipping_address": "Flat 347, Building 37, Baner Road, Bengaluru"
+        },
+        "ord_ring2_4": {
+          "kyc_verified": false,
+          "order_value": 4785.09,
+          "account_created_at": "2026-08-31",
+          "shipping_address": "Flat 403, Building 9, Kothrud, Mumbai"
+        }
       }
-
-      function addFeedEntry(message, type = 'info') {
-        const feed = document.getElementById('ai-feed');
-        const div = document.createElement('div');
-        const colors = {
-          info: 'text-slate-500',
-          warn: 'text-amber-500',
-          ai: 'text-violet-400',
-          flag: 'text-red-400 font-bold'
-        };
-        div.className = `mb-1 animate-fade-in ${colors[type] || 'text-slate-500'}`;
-        div.innerHTML = `<span class="opacity-50 mr-2">[${new Date().toLocaleTimeString([], {hour12:false, hour:'2-digit', minute:'2-digit', second:'2-digit'})}]</span> ${message}`;
-        feed.appendChild(div);
-        feed.scrollTop = feed.scrollHeight;
+    },
+    {
+      "order_ids": [
+        "ord_ring1_0",
+        "ord_ring1_1",
+        "ord_ring1_2",
+        "ord_ring1_3",
+        "ord_ring1_4"
+      ],
+      "size": 5,
+      "total_weight": 9.5,
+      "flagged": true,
+      "edges": [
+        {
+          "a": "ord_ring1_2",
+          "b": "ord_ring1_1",
+          "shared_attrs": [
+            "shipping_address"
+          ],
+          "weight": 2.0
+        },
+        {
+          "a": "ord_ring1_2",
+          "b": "ord_ring1_3",
+          "shared_attrs": [
+            "promo_code"
+          ],
+          "weight": 1.5
+        },
+        {
+          "a": "ord_ring1_4",
+          "b": "ord_ring1_3",
+          "shared_attrs": [
+            "device_id"
+          ],
+          "weight": 3.0
+        },
+        {
+          "a": "ord_ring1_1",
+          "b": "ord_ring1_0",
+          "shared_attrs": [
+            "device_id"
+          ],
+          "weight": 3.0
+        }
+      ],
+      "explanation": "[OFFLINE \u2014 not LLM-generated] 5 orders form a tightly connected cluster (weighted score 9.5) linked via device_id, promo_code, shipping_address. Notably, no single pair shares every attribute \u2014 the orders are connected through a CHAIN across device_id, promo_code, shipping_address, which is exactly the pattern a single-attribute check would miss. None of the accounts are KYC-verified. Recommended action: route to a fraud analyst for manual review before dispatch; do not auto-block.",
+      "llm_provider": "offline",
+      "llm_model": null,
+      "orders": {
+        "ord_ring1_0": {
+          "kyc_verified": false,
+          "order_value": 4945.74,
+          "account_created_at": "2026-08-31",
+          "shipping_address": "Flat 871, Building 15, Baner Road, Mumbai"
+        },
+        "ord_ring1_1": {
+          "kyc_verified": false,
+          "order_value": 1989.97,
+          "account_created_at": "2026-08-31",
+          "shipping_address": "Flat 682, Building 37, Aundh, Pune"
+        },
+        "ord_ring1_2": {
+          "kyc_verified": false,
+          "order_value": 922.57,
+          "account_created_at": "2026-08-31",
+          "shipping_address": "Flat 682, Building 37, Aundh, Pune"
+        },
+        "ord_ring1_3": {
+          "kyc_verified": false,
+          "order_value": 4881.3,
+          "account_created_at": "2026-08-31",
+          "shipping_address": "Flat 161, Building 8, Hinjewadi, Hyderabad"
+        },
+        "ord_ring1_4": {
+          "kyc_verified": false,
+          "order_value": 1772.69,
+          "account_created_at": "2026-08-31",
+          "shipping_address": "Flat 39, Building 9, Koregaon Park, Mumbai"
+        }
       }
-
-      function simulateAIFeed(flagged) {
-        const logs = [
-          { t: "info", m: "Scanning batch #A19 for coordinated topologies..." },
-          { t: "info", m: "Applying dampen-weights to KYC-verified accounts." },
-          { t: "warn", m: "Sensing high-weight cluster C-0 (Score: 9.5)..." },
-          { t: "ai", m: "Analyzing C-0: Found device_id chain across 5 orders." },
-          { t: "ai", m: "Topology match: Coordinated Ring pattern detected." },
-          { t: "flag", m: "Flagging C-0 for manual review. Probability: 98.4%" },
-        ];
-        let i = 0;
-        const interval = setInterval(() => {
-          if (i >= logs.length) { clearInterval(interval); return; }
-          addFeedEntry(logs[i].m, logs[i].t);
-          i++;
-        }, 1200);
+    },
+    {
+      "order_ids": [
+        "ord_01829",
+        "ord_01982"
+      ],
+      "size": 2,
+      "total_weight": 2.0,
+      "flagged": false,
+      "edges": [
+        {
+          "a": "ord_01982",
+          "b": "ord_01829",
+          "shared_attrs": [
+            "shipping_address"
+          ],
+          "weight": 2.0
+        }
+      ],
+      "explanation": null,
+      "llm_provider": null,
+      "llm_model": null,
+      "orders": {
+        "ord_01829": {
+          "kyc_verified": true,
+          "order_value": 3331.97,
+          "account_created_at": "2026-06-18",
+          "shipping_address": "Flat 427, Building 28, Camp, Mumbai"
+        },
+        "ord_01982": {
+          "kyc_verified": false,
+          "order_value": 3776.45,
+          "account_created_at": "2026-03-25",
+          "shipping_address": "Flat 427, Building 28, Camp, Mumbai"
+        }
       }
-
-      window.selectCluster = function(idx) {
-        APP_STATE.selectedClusterIdx = idx;
-        const c = APP_STATE.clusters[idx];
-
-        // Queue active state
-        document.querySelectorAll('#review-queue-body tr').forEach(row => {
-          row.classList.toggle('bg-violet-500/10', row.dataset.idx == idx);
-          row.classList.toggle('border-l-2', row.dataset.idx == idx);
-          row.classList.toggle('border-l-violet-500', row.dataset.idx == idx);
-        });
-
-        // Insight Panel
-        const panel = document.getElementById('global-insight-panel');
-        panel.classList.remove('hidden');
-        document.getElementById('insight-empty').classList.add('hidden');
-        const content = document.getElementById('insight-content');
-        content.classList.remove('hidden');
-        content.classList.remove('animate-slide-up');
-        void content.offsetWidth; // trigger reflow
-        content.classList.add('animate-slide-up');
-
-        document.getElementById('insight-explanation').textContent = c.explanation || 'No explanation available.';
-        document.getElementById('insight-confidence').textContent = c.flagged ? '98.4%' : '12.1%';
-
-        // Reasoning Path
-        const pathEl = document.getElementById('reasoning-path');
-        pathEl.innerHTML = '';
-        const steps = [
-          { n: 'Attribute Matching', d: `Identified ${c.edges.length} shared traits.`, s: 'complete' },
-          { n: 'Topology Analysis', d: `Found chain of ${c.size} connected orders.`, s: 'complete' },
-          { n: 'Risk Scoring', d: `Weight ${c.total_weight} exceeds threshold (4.0).`, s: c.flagged ? 'complete' : 'fail' },
-          { n: 'Final Verdict', d: c.flagged ? 'Flagged for Review' : 'Cleared', s: 'complete' }
-        ];
-
-        steps.forEach(step => {
-          const div = document.createElement('div');
-          div.className = 'path-step flex flex-col p-3 rounded-lg bg-white/5 border border-white/10 min-w-[140px]';
-          const color = step.s === 'complete' ? 'text-teal-500' : step.s === 'fail' ? 'text-red-500' : 'text-slate-600';
-          div.innerHTML = `
-            <p class="text-[10px] font-bold ${color} uppercase tracking-tighter mb-1">${step.n}</p>
-            <p class="text-[9px] text-slate-400 leading-tight">${step.d}</p>
-          `;
-          pathEl.appendChild(div);
-        });
-
-        // Table
-        const ordersBody = document.getElementById('insight-orders-body');
-        ordersBody.innerHTML = '';
-        Object.entries(c.orders).forEach(([oid, o], i) => {
-          const row = document.createElement('tr');
-          row.className = `${i % 2 === 1 ? 'bg-white/[0.02]' : ''} hover:bg-white/5 transition-colors`;
-          row.innerHTML = `
-            <td class="py-2 pl-2">${oid}</td>
-            <td class="${o.kyc_verified ? 'text-teal-500' : 'text-amber-500'}">${o.kyc_verified ? 'KYC ✓' : 'KYC ✗'}</td>
-            <td class="text-slate-200">₹${o.order_value.toFixed(0)}</td>
-            <td class="text-slate-400">${o.account_created_at}</td>
-          `;
-          ordersBody.appendChild(row);
-        });
-
-        addFeedEntry(`// Deep diving into Cluster C-${idx}: Analyzing weighted topology...`, 'ai');
-        if (window.network) highlightGraph(idx);
-      };
-
-      let network, visNodes, visEdges;
-      function buildGraph() {
-        visNodes = new vis.DataSet();
-        visEdges = new vis.DataSet();
-        const nodeCluster = {};
-
-        APP_STATE.clusters.forEach((c, idx) => {
-          c.order_ids.forEach(oid => {
-            const col = c.flagged ? '#F59E0B' : '#10B981';
-            visNodes.add({
-              id: oid, label: '', shape: 'dot', size: 10,
-              color: { background: col, border: col, highlight: { background: '#fff', border: col }, hover: { background: '#fff', border: col } },
-            });
-            nodeCluster[oid] = idx;
-          });
-          c.edges.forEach(e => {
-            const col = c.flagged ? '#F59E0B' : '#10B981';
-            visEdges.add({
-              from: e.a, to: e.b, width: Math.max(1.5, e.weight / 1.8),
-              color: { color: col, opacity: 0.4, highlight: col, hover: col },
-              smooth: { type: 'continuous' }
-            });
-          });
-        });
-
-        const container = document.getElementById('graph-container');
-        network = new vis.Network(container, { nodes: visNodes, edges: visEdges }, {
-          physics: { stabilization: { iterations: 150 }, barnesHut: { gravitationalConstant: -5000, springLength: 100 } },
-          interaction: { hover: true, tooltipDelay: 100 },
-          background: { color: 'transparent' }
-        });
-
-        network.on('click', params => {
-          if (params.nodes.length) {
-            const idx = nodeCluster[params.nodes[0]];
-            if (idx !== undefined) selectCluster(idx);
-          }
-        });
-
-        network.on('hoverNode', (nodeId) => {
-          const clusterIdx = nodeCluster[nodeId];
-          if (clusterIdx === undefined) return;
-          const order = APP_STATE.clusters[clusterIdx].orders[nodeId];
-          const tooltip = document.getElementById('node-tooltip');
-          document.getElementById('tooltip-id').textContent = nodeId;
-          document.getElementById('tooltip-value').textContent = '₹' + order.order_value.toFixed(0);
-          const kyc = document.getElementById('tooltip-kyc');
-          kyc.textContent = order.kyc_verified ? 'KYC ✓' : 'KYC ✗';
-          kyc.className = `text-[10px] px-1.5 py-0.5 rounded border ${order.kyc_verified ? 'bg-teal-500/10 text-teal-400 border-teal-500/20' : 'bg-amber-500/10 text-amber-400 border-amber-500/20'}`;
-          tooltip.style.display = 'block';
-        });
-
-        network.on('removeNode', () => {
-          document.getElementById('node-tooltip').style.display = 'none';
-        });
+    },
+    {
+      "order_ids": [
+        "ord_00426",
+        "ord_02578"
+      ],
+      "size": 2,
+      "total_weight": 2.0,
+      "flagged": false,
+      "edges": [
+        {
+          "a": "ord_02578",
+          "b": "ord_00426",
+          "shared_attrs": [
+            "shipping_address"
+          ],
+          "weight": 2.0
+        }
+      ],
+      "explanation": null,
+      "llm_provider": null,
+      "llm_model": null,
+      "orders": {
+        "ord_00426": {
+          "kyc_verified": false,
+          "order_value": 2283.66,
+          "account_created_at": "2026-07-15",
+          "shipping_address": "Flat 799, Building 4, Aundh, Bengaluru"
+        },
+        "ord_02578": {
+          "kyc_verified": false,
+          "order_value": 1754.92,
+          "account_created_at": "2026-05-05",
+          "shipping_address": "Flat 799, Building 4, Aundh, Bengaluru"
+        }
       }
+    },
+    {
+      "order_ids": [
+        "ord_01479",
+        "ord_01906"
+      ],
+      "size": 2,
+      "total_weight": 2.0,
+      "flagged": false,
+      "edges": [
+        {
+          "a": "ord_01479",
+          "b": "ord_01906",
+          "shared_attrs": [
+            "shipping_address"
+          ],
+          "weight": 2.0
+        }
+      ],
+      "explanation": null,
+      "llm_provider": null,
+      "llm_model": null,
+      "orders": {
+        "ord_01479": {
+          "kyc_verified": false,
+          "order_value": 921.1,
+          "account_created_at": "2025-09-24",
+          "shipping_address": "Flat 170, Building 39, Viman Nagar, Hyderabad"
+        },
+        "ord_01906": {
+          "kyc_verified": true,
+          "order_value": 4375.57,
+          "account_created_at": "2025-12-10",
+          "shipping_address": "Flat 170, Building 39, Viman Nagar, Hyderabad"
+        }
+      }
+    },
+    {
+      "order_ids": [
+        "ord_legit0_0",
+        "ord_legit0_1"
+      ],
+      "size": 2,
+      "total_weight": 0.3,
+      "flagged": false,
+      "edges": [
+        {
+          "a": "ord_legit0_1",
+          "b": "ord_legit0_0",
+          "shared_attrs": [
+            "shipping_address"
+          ],
+          "weight": 0.3
+        }
+      ],
+      "explanation": "[OFFLINE \u2014 not LLM-generated] 2 orders share shipping_address, but the weighted score (0.3) stays below the review threshold \u2014 the accounts involved are older and/or KYC-verified, which is far more consistent with an innocent explanation (e.g. shared household address) than a coordinated ring. Recommended action: no action needed, do not add to review queue.",
+      "llm_provider": "offline",
+      "llm_model": null,
+      "orders": {
+        "ord_legit0_0": {
+          "kyc_verified": true,
+          "order_value": 1443.4,
+          "account_created_at": "2025-11-26",
+          "shipping_address": "Flat 554, Building 8, Camp, Chennai"
+        },
+        "ord_legit0_1": {
+          "kyc_verified": true,
+          "order_value": 4318.91,
+          "account_created_at": "2025-10-27",
+          "shipping_address": "Flat 554, Building 8, Camp, Chennai"
+        }
+      }
+    },
+    {
+      "order_ids": [
+        "ord_legit1_0",
+        "ord_legit1_1"
+      ],
+      "size": 2,
+      "total_weight": 0.3,
+      "flagged": false,
+      "edges": [
+        {
+          "a": "ord_legit1_0",
+          "b": "ord_legit1_1",
+          "shared_attrs": [
+            "shipping_address"
+          ],
+          "weight": 0.3
+        }
+      ],
+      "explanation": null,
+      "llm_provider": null,
+      "llm_model": null,
+      "orders": {
+        "ord_legit1_0": {
+          "kyc_verified": true,
+          "order_value": 4201.97,
+          "account_created_at": "2025-11-26",
+          "shipping_address": "Flat 926, Building 19, Baner Road, Delhi"
+        },
+        "ord_legit1_1": {
+          "kyc_verified": true,
+          "order_value": 4697.75,
+          "account_created_at": "2025-10-27",
+          "shipping_address": "Flat 926, Building 19, Baner Road, Delhi"
+        }
+      }
+    }
+  ],
+  "audit": {
+    "generated_at": "2026-09-02T01:19:00.268375",
+    "total_orders_scanned": 3019,
+    "known_injected_rings": 3,
+    "rings_correctly_caught": 3,
+    "recall_on_injected_rings": 1.0,
+    "clusters_flagged": 3,
+    "false_positive_clusters": 0,
+    "precision_on_flagged_clusters": 1.0,
+    "legit_lookalike_pairs_correctly_ignored": 2,
+    "legit_lookalike_pairs_incorrectly_flagged": 0,
+    "review_queue_reduction": {
+      "raw_orders": 3019,
+      "clusters_worth_reviewing": 3,
+      "reduction_pct": 99.901
+    },
+    "honest_caveat": "Precision/recall above are measured against DELIBERATELY INJECTED, KNOWN ring patterns in synthetic data. This validates that the detection MECHANISM works correctly on a known pattern \u2014 it does not, by itself, prove real-world generalization, which would require real (anonymized) order data this project has no access to."
+  },
+  "pipeline_log": [
+    {
+      "phase": 1,
+      "name": "Data Generation",
+      "description": "Generating 3000 normal orders + 3 rings + 2 legit lookalikes",
+      "status": "ok",
+      "elapsed_s": 0.088,
+      "detail": "3019 orders  \u00b7  15 ring-injected  \u00b7  3004 normal"
+    },
+    {
+      "phase": 2,
+      "name": "Graph Construction",
+      "description": "Drawing edges between orders sharing device / address / promo / payment fingerprint",
+      "status": "ok",
+      "elapsed_s": 0.013,
+      "detail": "3019 nodes  \u00b7  17 edges"
+    },
+    {
+      "phase": 3,
+      "name": "Cluster Scoring",
+      "description": "Applying weighted-dampened scoring and connected-component clustering",
+      "status": "ok",
+      "elapsed_s": 0.004,
+      "detail": "8 clusters  \u00b7  3 flagged"
+    },
+    {
+      "phase": 4,
+      "name": "LLM Explanations",
+      "description": "Generating analyst summaries via offline fallback \u2014 NOT an LLM call, set an API key for real output",
+      "status": "ok",
+      "elapsed_s": 0.001,
+      "detail": "4 clusters explained  \u00b7  offline fallback \u2014 NOT an LLM call, set an API key for real output"
+    },
+    {
+      "phase": 5,
+      "name": "Metrics Evaluation",
+      "description": "Computing precision, recall, and review-queue reduction",
+      "status": "ok",
+      "elapsed_s": 0.001,
+      "detail": ""
+    },
+    {
+      "phase": 6,
+      "name": "Dashboard Build",
+      "description": "Compiling frontend/dashboard_data.json from pipeline artifacts",
+      "status": "ok",
+      "elapsed_s": 0.001,
+      "detail": "frontend/dashboard_data.json  \u00b7  8 clusters"
+    }
+  ]
+};
 
-      window.addEventListener('mousemove', (e) => {
-        const tooltip = document.getElementById('node-tooltip');
-        if (tooltip && tooltip.style.display === 'block') {
-          tooltip.style.left = (e.clientX + 15) + 'px';
-          tooltip.style.top = (e.clientY + 15) + 'px';
+(function () {
+  let clusters = [];
+  let audit = {};
+  let pipelineLog = [];
+  let selectedIdx = null;
+  let sortKey = 'total_weight';
+  let sortDir = -1;
+
+  function init(payload, sourceLabel) {
+    clusters = payload.clusters || [];
+    audit = payload.audit || {};
+    pipelineLog = payload.pipeline_log || [];
+
+    const anyLive = clusters.some(c => c.llm_provider && c.llm_provider !== 'offline');
+    document.getElementById('status-chip').className = 'status-chip ' + (anyLive ? 'live' : 'offline');
+    document.getElementById('status-label').textContent = anyLive
+      ? `Live (${sourceLabel})` : `Offline fallback (${sourceLabel})`;
+
+    /* ---------------- tabs ---------------- */
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById('panel-' + btn.dataset.tab).classList.add('active');
+        if (btn.dataset.tab === 'graph' && !window.__graphInited) {
+          window.__graphInited = true;
+          initGraphSafely();
         }
       });
+    });
 
-      function highlightGraph(idx) {
-        const memberIds = new Set(APP_STATE.clusters[idx].order_ids);
-        visNodes.update(visNodes.get().map(n => ({
-          id: n.id, size: memberIds.has(n.id) ? 20 : 10, opacity: memberIds.has(n.id) ? 1.0 : 0.2,
-        })));
+    /* ---------------- KPI cards ---------------- */
+    const kpiRow = document.getElementById('kpi-row');
+    const kpis = [
+      { label: 'Orders scanned', value: (audit.total_orders_scanned||0).toLocaleString(), cls: 'neutral',
+        icon: '<rect x="3" y="3" width="18" height="18" rx="2.5"/><path d="M7 8h10M7 12h10M7 16h6"/>' },
+      { label: 'Rings flagged', value: audit.clusters_flagged ?? '—', cls: 'amber',
+        icon: '<path d="M12 3 2 20h20L12 3Z"/><path d="M12 9v5M12 17h.01"/>',
+        note: (audit.false_positive_clusters === 0 ? '0 false positives' : `${audit.false_positive_clusters ?? '?'} false positives`) },
+      { label: 'Recall on known rings', value: audit.recall_on_injected_rings != null ? (audit.recall_on_injected_rings*100).toFixed(0)+'%' : '—', cls: 'teal',
+        icon: '<path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="9"/>' },
+      { label: 'Review-queue reduction', value: audit.review_queue_reduction ? audit.review_queue_reduction.reduction_pct.toFixed(1)+'%' : '—', cls: 'teal',
+        icon: '<path d="M4 20h16M8 16l4-8 3 5 3-9"/>',
+        note: audit.review_queue_reduction ? `${audit.review_queue_reduction.raw_orders.toLocaleString()} → ${audit.review_queue_reduction.clusters_worth_reviewing} clusters` : '' },
+    ];
+    kpiRow.innerHTML = kpis.map(k => `
+      <div class="kpi-card">
+        <div class="kpi-top"><span class="kpi-label">${k.label}</span>
+          <span class="kpi-icon ${k.cls}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${k.icon}</svg></span></div>
+        <div class="kpi-value ${k.cls}">${k.value}</div>
+        ${k.note ? `<div class="kpi-note">${k.note}</div>` : ''}
+      </div>`).join('');
+
+    /* ---------------- Agent Run Log (real phases, real timing) ---------------- */
+    const logBody = document.getElementById('run-log-body');
+    if (pipelineLog.length === 0) {
+      logBody.innerHTML = `<div style="font-size:11.5px;color:var(--ink-faint);">No live run log available — this data was generated by the standalone script, not a live agent.py run. Run <span class="mono">python agent.py</span> to see real phase-by-phase timings here.</div>`;
+      document.getElementById('run-log-count').textContent = '';
+    } else {
+      document.getElementById('run-log-count').textContent = `${pipelineLog.length} phases`;
+      logBody.innerHTML = pipelineLog.map(entry => `
+        <div class="log-row">
+          <span class="log-icon ${entry.status}">${entry.status === 'ok'
+            ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M20 6 9 17l-5-5"/></svg>'
+            : '<svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10"/></svg>'}</span>
+          <span class="log-name">P${entry.phase} · ${entry.name}</span>
+          <span class="log-detail">${entry.detail || entry.description || ''}</span>
+          <span class="log-time">${entry.elapsed_s != null ? entry.elapsed_s.toFixed(2) + 's' : '…'}</span>
+        </div>`).join('');
+    }
+
+    /* ---------------- table ---------------- */
+    function sortedClusters() {
+      return [...clusters].sort((a, b) => {
+        let av = a[sortKey], bv = b[sortKey];
+        if (typeof av === 'boolean') { av = av ? 1 : 0; bv = bv ? 1 : 0; }
+        return av > bv ? sortDir : av < bv ? -sortDir : 0;
+      });
+    }
+
+    function renderTable() {
+      const list = sortedClusters();
+      document.getElementById('table-count').textContent = `${list.length} clusters · ${clusters.filter(c=>c.flagged).length} flagged`;
+      document.getElementById('table-body').innerHTML = list.map((c) => {
+        const idx = clusters.indexOf(c);
+        const attrs = [...new Set(c.edges.flatMap(e => e.shared_attrs))];
+        const barPct = Math.min(100, (c.total_weight / 12) * 100);
+        const verdictSnippet = c.explanation ? c.explanation.replace(/^\[.*?\]\s*/, '').replace(/\[.*?\]/g, '').trim().slice(0, 60) + '…' : '—';
+        return `
+          <tr data-idx="${idx}" class="${idx === selectedIdx ? 'selected' : ''}">
+            <td><span class="status-pill ${c.flagged ? 'flagged' : 'cleared'}"><span class="dot"></span>${c.flagged ? 'Flagged' : 'Cleared'}</span></td>
+            <td class="order-count">${c.size} orders</td>
+            <td><div class="weight-cell"><div class="weight-bar"><div class="weight-bar-fill" style="width:${barPct}%; background:${c.flagged ? 'var(--amber)' : 'var(--teal)'}"></div></div><span class="weight-num">${c.total_weight}</span></div></td>
+            <td>${attrs.map(a => `<span class="attr-chip">${a}</span>`).join('')}</td>
+            <td style="color:var(--ink-dim); font-size:11.5px;">${verdictSnippet}</td>
+          </tr>`;
+      }).join('');
+      document.querySelectorAll('#table-body tr').forEach(tr => {
+        tr.addEventListener('click', () => selectCluster(parseInt(tr.dataset.idx)));
+      });
+    }
+
+    document.querySelectorAll('thead th[data-sort]').forEach(th => {
+      th.addEventListener('click', () => {
+        const key = th.dataset.sort;
+        if (sortKey === key) sortDir *= -1; else { sortKey = key; sortDir = -1; }
+        document.querySelectorAll('thead th').forEach(t => t.classList.remove('sort-active'));
+        th.classList.add('sort-active');
+        renderTable();
+      });
+    });
+
+    /* ---------------- AI panel: real structured reasoning trace ---------------- */
+    const providerNames = {
+      groq: 'Groq', gemini: 'Google Gemini', anthropic: 'Claude', offline: 'Offline fallback — not an LLM call',
+    };
+
+    function parseReasoningSections(text) {
+      if (!text) return null;
+      const sectionNames = ['OBSERVATION', 'ANALYSIS', 'VERDICT', 'RECOMMENDED ACTION'];
+      const found = {};
+      let matched = false;
+      sectionNames.forEach((name, i) => {
+        const nextName = sectionNames[i + 1];
+        const pattern = nextName
+          ? new RegExp(`\\[${name}\\]([\\s\\S]*?)\\[${nextName}\\]`, 'i')
+          : new RegExp(`\\[${name}\\]([\\s\\S]*)$`, 'i');
+        const m = text.match(pattern);
+        if (m) { found[name] = m[1].trim(); matched = true; }
+      });
+      return matched ? found : null;
+    }
+
+    function selectCluster(idx) {
+      selectedIdx = idx;
+      renderTable();
+      const c = clusters[idx];
+      const isOffline = !c.llm_provider || c.llm_provider === 'offline';
+
+      const chip = document.getElementById('provider-chip');
+      chip.className = 'provider-chip' + (isOffline ? ' is-offline' : '');
+      chip.innerHTML = isOffline
+        ? 'Offline fallback — not an LLM call'
+        : `<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M13 2 4 14h7l-1 8 9-12h-7l1-8Z"/></svg> ${providerNames[c.llm_provider] || c.llm_provider}${c.llm_model ? ' · ' + c.llm_model : ''}`;
+
+      const orderRows = Object.entries(c.orders).map(([oid, o]) => `
+        <div class="ai-order-row"><span class="oid">${oid}</span>
+          <span class="${o.kyc_verified ? 'kyc-yes' : 'kyc-no'}">${o.kyc_verified ? 'KYC ✓' : 'KYC ✗'}</span>
+          <span>₹${o.order_value.toFixed(0)}</span></div>`).join('');
+
+      const sections = !isOffline ? parseReasoningSections(c.explanation) : null;
+      let bodyHtml;
+      if (sections) {
+        const order = [
+          ['OBSERVATION', 'Observation'], ['ANALYSIS', 'Analysis'],
+          ['VERDICT', 'Verdict'], ['RECOMMENDED ACTION', 'Recommended action'],
+        ];
+        bodyHtml = order.filter(([k]) => sections[k]).map(([k, label], i, arr) => `
+          <div class="reason-step">
+            <div class="reason-marker"><div class="reason-dot"></div>${i < arr.length - 1 ? '<div class="reason-line"></div>' : ''}</div>
+            <div class="reason-content"><div class="reason-title">${label}</div><div class="reason-text">${sections[k]}</div></div>
+          </div>`).join('');
+      } else {
+        const cleanText = (c.explanation || 'No explanation generated.').replace(/^\[.*?\]\s*/, '');
+        bodyHtml = `<div class="reason-text">${cleanText}</div>`;
       }
 
-      loadData();
-    })();
-  </script>
+      document.getElementById('ai-body').innerHTML = `
+        <div class="ai-cluster-meta">
+          <div class="ai-meta-item"><div class="meta-label">Verdict</div><div class="meta-value" style="color:${c.flagged ? 'var(--amber)' : 'var(--teal)'}">${c.flagged ? 'Flagged' : 'Cleared'}</div></div>
+          <div class="ai-meta-item"><div class="meta-label">Weighted score</div><div class="meta-value">${c.total_weight}</div></div>
+          <div class="ai-meta-item"><div class="meta-label">Orders</div><div class="meta-value">${c.size}</div></div>
+        </div>
+        ${bodyHtml}
+        <div class="ai-order-list"><div class="sub-label">Member orders</div>${orderRows}</div>
+        <div class="ai-footnote">Verdict decided by deterministic graph scoring (scoring/cluster_score.py). This panel only explains that decision — it cannot change it.</div>`;
+    }
+
+    renderTable();
+    const firstFlagged = clusters.findIndex(c => c.flagged);
+    if (firstFlagged >= 0) selectCluster(firstFlagged);
+    window.__clusters = clusters;
+    window.__selectCluster = selectCluster;
+  }
+
+  /* ================= GRAPH TAB — lazy init, cannot crash the dashboard ================= */
+  function initGraphSafely() {
+    const fallback = document.getElementById('graph-fallback');
+    const canvas = document.getElementById('graph-canvas');
+
+    function showFallback() { fallback.classList.add('visible'); canvas.style.display = 'none'; }
+
+    function loadScript(src) {
+      return new Promise((resolve, reject) => {
+        const s = document.createElement('script');
+        s.src = src; s.onload = resolve; s.onerror = reject;
+        document.head.appendChild(s);
+      });
+    }
+
+    async function ensureVis() {
+      if (typeof vis !== 'undefined') return true;
+      try { await loadScript('https://unpkg.com/vis-network@9.1.9/standalone/umd/vis-network.min.js'); } catch (e) {}
+      if (typeof vis !== 'undefined') return true;
+      try { await loadScript('https://cdn.jsdelivr.net/npm/vis-network@9.1.9/standalone/umd/vis-network.min.js'); } catch (e) {}
+      return typeof vis !== 'undefined';
+    }
+
+    ensureVis().then(ok => {
+      if (!ok) { showFallback(); return; }
+      try { buildGraph(); } catch (e) { console.error('Graph build failed:', e); showFallback(); }
+    });
+  }
+
+  function buildGraph() {
+    const nodes = new vis.DataSet();
+    const edges = new vis.DataSet();
+    const nodeCluster = {};
+    const nodeInfo = {};
+
+    clusters.forEach((c, idx) => {
+      c.order_ids.forEach(oid => {
+        if (!nodes.get(oid)) {
+          nodes.add({ id: oid, label: '', shape: 'dot', size: 9, color: c.flagged ? '#F0A93D' : '#33D6A6' });
+          nodeInfo[oid] = c.orders[oid];
+        }
+        nodeCluster[oid] = idx;
+      });
+      c.edges.forEach(e => {
+        edges.add({ id: `${e.a}__${e.b}`, from: e.a, to: e.b, width: Math.max(1, e.weight / 2),
+          color: { color: c.flagged ? '#F0A93D' : '#33D6A6', opacity: 0.5 }, shared_attrs: e.shared_attrs, weight: e.weight });
+      });
+    });
+
+    const network = new vis.Network(document.getElementById('graph-canvas'), { nodes, edges }, {
+      nodes: { borderWidth: 0, font: { color: '#E7E9F0' } },
+      edges: { smooth: { type: 'continuous' } },
+      physics: { stabilization: true, barnesHut: { gravitationalConstant: -4200, springLength: 95 } },
+      interaction: { hover: true },
+      layout: { improvedLayout: true },
+    });
+
+    const tooltip = document.getElementById('hover-tooltip');
+    function showTooltip(x, y, html) { tooltip.innerHTML = html; tooltip.style.left = (x+16)+'px'; tooltip.style.top = (y+16)+'px'; tooltip.classList.add('visible'); }
+    function hideTooltip() { tooltip.classList.remove('visible'); }
+
+    network.on('hoverNode', (params) => {
+      const oid = params.node, o = nodeInfo[oid], idx = nodeCluster[oid], c = clusters[idx];
+      if (!o) return;
+      showTooltip(params.event.center.x, params.event.center.y, `
+        <div class="tt-kind">ORDER</div><div class="tt-title">${oid}</div>
+        <div class="tt-row"><span>KYC verified</span><span>${o.kyc_verified ? 'Yes' : 'No'}</span></div>
+        <div class="tt-row"><span>Order value</span><span>₹${o.order_value.toFixed(0)}</span></div>
+        <div class="tt-row"><span>Account age</span><span>${o.account_created_at}</span></div>
+        <div class="tt-verdict ${c.flagged ? 'flagged' : 'cleared'}">Cluster ${c.flagged ? 'flagged' : 'cleared'} · weight ${c.total_weight}</div>`);
+      highlightCluster(nodes, idx);
+    });
+    network.on('hoverEdge', (params) => {
+      const edge = edges.get(params.edge); if (!edge) return;
+      showTooltip(params.event.center.x, params.event.center.y, `
+        <div class="tt-kind">CONNECTION</div>
+        <div class="tt-row"><span>Shares</span><span>${edge.shared_attrs.join(', ')}</span></div>
+        <div class="tt-row"><span>Weight</span><span>${edge.weight}</span></div>`);
+    });
+    network.on('blurNode', hideTooltip);
+    network.on('blurEdge', hideTooltip);
+    document.getElementById('graph-canvas').addEventListener('mousemove', (e) => {
+      if (tooltip.classList.contains('visible')) { tooltip.style.left = (e.clientX+16)+'px'; tooltip.style.top = (e.clientY+16)+'px'; }
+    });
+    network.on('click', (params) => {
+      if (params.nodes.length) {
+        const idx = nodeCluster[params.nodes[0]];
+        if (idx !== undefined) { document.querySelector('.tab-btn[data-tab="dashboard"]').click(); window.__selectCluster(idx); }
+      }
+    });
+
+    function highlightCluster(nodes, idx) {
+      const memberIds = new Set(clusters[idx].order_ids);
+      nodes.update(nodes.get().map(n => ({ id: n.id, size: memberIds.has(n.id) ? 16 : 9 })));
+    }
+  }
+
+  /* ================= Data source: Supabase (if configured) → local dashboard_data.json (fetch) → inline fallback ================= */
+  async function trySupabase() {
+    if (!window.SUPABASE_URL || !window.SUPABASE_ANON_KEY || typeof window.supabase === 'undefined') return null;
+    try {
+      const client = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+      const { data: clusterRows, error: e1 } = await client.from('clusters').select('*');
+      if (e1 || !clusterRows) return null;
+      const { data: memberRows } = await client.from('cluster_members').select('*, orders(*)');
+      const membersByCluster = {};
+      (memberRows || []).forEach(m => {
+        (membersByCluster[m.cluster_id] = membersByCluster[m.cluster_id] || []).push(m);
+      });
+      const clusters = clusterRows.map(row => ({
+        order_ids: (membersByCluster[row.id] || []).map(m => m.order_id),
+        size: (membersByCluster[row.id] || []).length,
+        total_weight: row.total_weight, flagged: row.flagged, explanation: row.explanation,
+        llm_provider: row.llm_provider, llm_model: row.llm_model, edges: row.edges || [],
+        orders: Object.fromEntries((membersByCluster[row.id] || []).map(m => [m.order_id, m.orders || {}])),
+      }));
+      return { clusters, audit: {}, pipeline_log: [] };
+    } catch (e) { console.warn('Supabase read failed, falling back:', e); return null; }
+  }
+
+  (async function bootstrap() {
+    const supa = await trySupabase();
+    if (supa) { init(supa, 'Supabase'); return; }
+    try {
+      const r = await fetch('dashboard_data.json');
+      const data = await r.json();
+      init(data, 'local file');
+    } catch (e) {
+      init(INLINE_PAYLOAD, 'inline snapshot');
+    }
+  })();
+})();
+</script>
 </body>
 </html>

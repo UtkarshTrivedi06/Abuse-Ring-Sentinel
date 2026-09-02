@@ -88,19 +88,34 @@ def header():
     print(ruler("="))
     print()
 
+PIPELINE_LOG = []  # real record of what actually ran, exposed to the dashboard as an honest "Agent Run Log"
+
 def phase_start(n, name, description):
     print(f"  {PHASE_TAG(n)}  {c(name, BOLD, WHITE)}")
     print(f"         {c(description, DIM)}")
+    PIPELINE_LOG.append({"phase": n, "name": name, "description": description,
+                          "status": "running", "elapsed_s": None, "detail": None})
 
 def phase_done(name, elapsed, detail=""):
     tail = f"  {c(detail, DIM)}" if detail else ""
     print(f"  {OK_TAG}  {c(name, GREEN)}  {c(f'{elapsed:.2f}s', DIM)}{tail}")
     print()
+    for entry in reversed(PIPELINE_LOG):
+        if entry["status"] == "running":
+            entry["status"] = "ok"
+            entry["elapsed_s"] = round(elapsed, 3)
+            entry["detail"] = detail
+            break
 
 def phase_fail(name, err):
     print(f"  {FAIL_TAG}  {c(name, RED)}")
     print(f"         {c(str(err), RED)}")
     print()
+    for entry in reversed(PIPELINE_LOG):
+        if entry["status"] == "running":
+            entry["status"] = "failed"
+            entry["detail"] = str(err)
+            break
 
 def info(msg):
     print(f"  {INFO_TAG}  {c(msg, DIM)}")
@@ -111,7 +126,20 @@ def result_row(label, value, color=WHITE):
 
 
 def verify_dependencies(auto_fix=False):
-    """Ensure all requirements from requirements.txt are installed in the active environment."""
+    """
+    Ensure HARD requirements are installed. Soft/optional packages
+    (matplotlib, anthropic, supabase) are reported as informational notes,
+    never as a blocking failure — the whole point of the multi-provider and
+    Supabase-optional design is that the pipeline runs with zero setup
+    beyond networkx + requests.
+    """
+    HARD_REQUIRED = {"networkx", "requests"}
+    SOFT_OPTIONAL = {
+        "matplotlib": "only needed if you manually plot the raw graph",
+        "anthropic": "only needed if ANTHROPIC_API_KEY is set",
+        "supabase": "only needed if SUPABASE_URL/SUPABASE_KEY are set",
+    }
+
     req_path = os.path.join(ROOT, "requirements.txt")
     if not os.path.exists(req_path):
         return True
@@ -119,25 +147,28 @@ def verify_dependencies(auto_fix=False):
     with open(req_path, "r") as f:
         reqs = [line.strip() for line in f if line.strip() and not line.startswith("#")]
 
-    missing = []
+    import importlib.util
+    missing_hard, missing_soft = [], []
     for req in reqs:
-        # Extract package name from 'requests>=2.28' -> 'requests'
         pkg_name = req.split(">=")[0].split("==")[0].split("<=")[0].strip()
-        try:
-            # Use importlib to check if the package is available without executing it
-            import importlib.util
-            if importlib.util.find_spec(pkg_name) is None:
-                missing.append(pkg_name)
-        except Exception:
-            missing.append(pkg_name)
+        found = importlib.util.find_spec(pkg_name) is not None
+        if not found:
+            if pkg_name in HARD_REQUIRED:
+                missing_hard.append(pkg_name)
+            elif pkg_name in SOFT_OPTIONAL:
+                missing_soft.append(pkg_name)
 
-    if not missing:
+    for pkg in missing_soft:
+        info(f"Optional package '{pkg}' not installed ({SOFT_OPTIONAL[pkg]}) — continuing without it.")
+
+    if not missing_hard:
         return True
 
     print(f"\n{FAIL_TAG}  {c('Dependency Error', RED)}")
-    print(f"         {c('The following required packages are missing from your current Python environment:', RED)}")
-    for m in missing:
+    print(f"         {c('The following REQUIRED packages are missing from your current Python environment:', RED)}")
+    for m in missing_hard:
         print(f"         - {m}")
+    missing = missing_hard
 
     if auto_fix:
         print(f"\n{INFO_TAG}  {c('Attempting to auto-fix dependencies...', DIM)}")
@@ -212,19 +243,25 @@ def phase4_explain(clusters, orders):
     orders_by_id = {o["order_id"]: o for o in orders}
     to_explain = [c for c in clusters if c["flagged"]]
     to_explain += [c for c in clusters if not c["flagged"] and "legit" in c["order_ids"][0]][:1]
+    to_explain_ids = {id(c) for c in to_explain}
     results = []
+    actual_provider_used = "offline"
     for cluster in clusters:
-        if cluster in to_explain:
-            exp = explain_cluster(cluster, orders_by_id)
+        if id(cluster) in to_explain_ids:
+            exp, provider, model = explain_cluster(cluster, orders_by_id)
+            if provider != "offline":
+                actual_provider_used = provider
         else:
-            exp = None
-        results.append({**cluster, "llm_explanation": exp})
+            exp, provider, model = None, None, None
+        results.append({**cluster, "llm_explanation": exp,
+                         "llm_provider": provider, "llm_model": model})
     out = os.path.join(ROOT, "llm", "explained_clusters.json")
     os.makedirs(os.path.dirname(out), exist_ok=True)
     with open(out, "w") as f:
         json.dump(results, f, indent=2)
+    real_mode = f"{actual_provider_used.upper()} (live)" if actual_provider_used != "offline" else mode
     phase_done("LLM explanations", time.perf_counter() - t0,
-               f"{len(to_explain)} clusters explained  ·  {mode}")
+               f"{len(to_explain)} clusters explained  ·  {real_mode}")
     return results
 
 
@@ -259,6 +296,15 @@ def phase6_dashboard(orders, explained_clusters, report):
     phase_start(6, "Dashboard Build",
                 "Compiling frontend/dashboard_data.json from pipeline artifacts")
     payload = format_dashboard_payload(orders, explained_clusters, report)
+    elapsed_so_far = time.perf_counter() - t0
+    # Phase 6 is writing the very file that records its own log entry, so it
+    # can't observe its own "done" status honestly — approximate it here
+    # (a few ms of inaccuracy) rather than leave the entry stuck on
+    # "running", which would look like the pipeline hung when it didn't.
+    log_snapshot = [dict(entry) for entry in PIPELINE_LOG]
+    log_snapshot[-1].update(status="ok", elapsed_s=round(elapsed_so_far, 3),
+                             detail=f"frontend/dashboard_data.json  ·  {len(payload['clusters'])} clusters")
+    payload["pipeline_log"] = log_snapshot
     out = os.path.join(ROOT, "frontend", "dashboard_data.json")
     os.makedirs(os.path.dirname(out), exist_ok=True)
     with open(out, "w") as f:

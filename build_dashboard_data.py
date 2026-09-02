@@ -43,9 +43,14 @@ def format_dashboard_payload(orders, clusters, report, explained_lookup=None):
                 }
 
         if explained_lookup is not None:
-            explanation = explained_lookup.get(tuple(c["order_ids"]))
+            entry = explained_lookup.get(tuple(c["order_ids"])) or {}
+            explanation = entry.get("explanation")
+            provider = entry.get("provider", "offline")
+            model = entry.get("model")
         else:
             explanation = c.get("llm_explanation")
+            provider = c.get("llm_provider", "offline")
+            model = c.get("llm_model")
 
         formatted_clusters.append({
             "order_ids": c["order_ids"],
@@ -54,6 +59,8 @@ def format_dashboard_payload(orders, clusters, report, explained_lookup=None):
             "flagged": c["flagged"],
             "edges": c["edges"],
             "explanation": explanation,
+            "llm_provider": provider,
+            "llm_model": model,
             "orders": c_orders,
         })
 
@@ -85,9 +92,14 @@ def generate_dashboard_data():
     if os.path.exists(explained_path):
         with open(explained_path) as f:
             for c in json.load(f):
-                explained_lookup[tuple(c["order_ids"])] = c.get("llm_explanation")
+                explained_lookup[tuple(c["order_ids"])] = {
+                    "explanation": c.get("llm_explanation"),
+                    "provider": c.get("llm_provider", "offline"),
+                    "model": c.get("llm_model"),
+                }
 
     payload = format_dashboard_payload(orders, clusters, report, explained_lookup)
+    payload["pipeline_log"] = []  # standalone script has no live phase timings — only agent.py's live run does
 
     out_path = os.path.join(base_dir, "frontend", "dashboard_data.json")
     os.makedirs(os.path.dirname(out_path), exist_ok=True)

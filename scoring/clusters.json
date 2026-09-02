@@ -12,6 +12,14 @@
     "flagged": true,
     "edges": [
       {
+        "a": "ord_ring0_4",
+        "b": "ord_ring0_3",
+        "shared_attrs": [
+          "device_id"
+        ],
+        "weight": 3.0
+      },
+      {
         "a": "ord_ring0_2",
         "b": "ord_ring0_1",
         "shared_attrs": [
@@ -28,16 +36,8 @@
         "weight": 1.5
       },
       {
-        "a": "ord_ring0_3",
-        "b": "ord_ring0_4",
-        "shared_attrs": [
-          "device_id"
-        ],
-        "weight": 3.0
-      },
-      {
-        "a": "ord_ring0_0",
-        "b": "ord_ring0_1",
+        "a": "ord_ring0_1",
+        "b": "ord_ring0_0",
         "shared_attrs": [
           "device_id"
         ],
@@ -58,36 +58,36 @@
     "flagged": true,
     "edges": [
       {
-        "a": "ord_ring2_3",
-        "b": "ord_ring2_4",
+        "a": "ord_ring2_2",
+        "b": "ord_ring2_1",
         "shared_attrs": [
-          "device_id"
+          "shipping_address"
         ],
-        "weight": 3.0
+        "weight": 2.0
       },
       {
-        "a": "ord_ring2_3",
-        "b": "ord_ring2_2",
+        "a": "ord_ring2_2",
+        "b": "ord_ring2_3",
         "shared_attrs": [
           "promo_code"
         ],
         "weight": 1.5
       },
       {
-        "a": "ord_ring2_1",
-        "b": "ord_ring2_0",
+        "a": "ord_ring2_0",
+        "b": "ord_ring2_1",
         "shared_attrs": [
           "device_id"
         ],
         "weight": 3.0
       },
       {
-        "a": "ord_ring2_1",
-        "b": "ord_ring2_2",
+        "a": "ord_ring2_4",
+        "b": "ord_ring2_3",
         "shared_attrs": [
-          "shipping_address"
+          "device_id"
         ],
-        "weight": 2.0
+        "weight": 3.0
       }
     ]
   },
@@ -147,8 +147,8 @@
     "flagged": false,
     "edges": [
       {
-        "a": "ord_01829",
-        "b": "ord_01982",
+        "a": "ord_01982",
+        "b": "ord_01829",
         "shared_attrs": [
           "shipping_address"
         ],
@@ -204,8 +204,8 @@
     "flagged": false,
     "edges": [
       {
-        "a": "ord_legit0_0",
-        "b": "ord_legit0_1",
+        "a": "ord_legit0_1",
+        "b": "ord_legit0_0",
         "shared_attrs": [
           "shipping_address"
         ],
