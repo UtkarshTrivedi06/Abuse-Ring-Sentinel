@@ -1,0 +1,235 @@
+[
+  {
+    "order_ids": [
+      "ord_ring0_0",
+      "ord_ring0_1",
+      "ord_ring0_2",
+      "ord_ring0_3",
+      "ord_ring0_4"
+    ],
+    "size": 5,
+    "total_weight": 9.5,
+    "flagged": true,
+    "edges": [
+      {
+        "a": "ord_ring0_2",
+        "b": "ord_ring0_1",
+        "shared_attrs": [
+          "shipping_address"
+        ],
+        "weight": 2.0
+      },
+      {
+        "a": "ord_ring0_2",
+        "b": "ord_ring0_3",
+        "shared_attrs": [
+          "promo_code"
+        ],
+        "weight": 1.5
+      },
+      {
+        "a": "ord_ring0_3",
+        "b": "ord_ring0_4",
+        "shared_attrs": [
+          "device_id"
+        ],
+        "weight": 3.0
+      },
+      {
+        "a": "ord_ring0_0",
+        "b": "ord_ring0_1",
+        "shared_attrs": [
+          "device_id"
+        ],
+        "weight": 3.0
+      }
+    ]
+  },
+  {
+    "order_ids": [
+      "ord_ring2_0",
+      "ord_ring2_1",
+      "ord_ring2_2",
+      "ord_ring2_3",
+      "ord_ring2_4"
+    ],
+    "size": 5,
+    "total_weight": 9.5,
+    "flagged": true,
+    "edges": [
+      {
+        "a": "ord_ring2_3",
+        "b": "ord_ring2_4",
+        "shared_attrs": [
+          "device_id"
+        ],
+        "weight": 3.0
+      },
+      {
+        "a": "ord_ring2_3",
+        "b": "ord_ring2_2",
+        "shared_attrs": [
+          "promo_code"
+        ],
+        "weight": 1.5
+      },
+      {
+        "a": "ord_ring2_1",
+        "b": "ord_ring2_0",
+        "shared_attrs": [
+          "device_id"
+        ],
+        "weight": 3.0
+      },
+      {
+        "a": "ord_ring2_1",
+        "b": "ord_ring2_2",
+        "shared_attrs": [
+          "shipping_address"
+        ],
+        "weight": 2.0
+      }
+    ]
+  },
+  {
+    "order_ids": [
+      "ord_ring1_0",
+      "ord_ring1_1",
+      "ord_ring1_2",
+      "ord_ring1_3",
+      "ord_ring1_4"
+    ],
+    "size": 5,
+    "total_weight": 9.5,
+    "flagged": true,
+    "edges": [
+      {
+        "a": "ord_ring1_2",
+        "b": "ord_ring1_1",
+        "shared_attrs": [
+          "shipping_address"
+        ],
+        "weight": 2.0
+      },
+      {
+        "a": "ord_ring1_2",
+        "b": "ord_ring1_3",
+        "shared_attrs": [
+          "promo_code"
+        ],
+        "weight": 1.5
+      },
+      {
+        "a": "ord_ring1_0",
+        "b": "ord_ring1_1",
+        "shared_attrs": [
+          "device_id"
+        ],
+        "weight": 3.0
+      },
+      {
+        "a": "ord_ring1_4",
+        "b": "ord_ring1_3",
+        "shared_attrs": [
+          "device_id"
+        ],
+        "weight": 3.0
+      }
+    ]
+  },
+  {
+    "order_ids": [
+      "ord_01829",
+      "ord_01982"
+    ],
+    "size": 2,
+    "total_weight": 2.0,
+    "flagged": false,
+    "edges": [
+      {
+        "a": "ord_01829",
+        "b": "ord_01982",
+        "shared_attrs": [
+          "shipping_address"
+        ],
+        "weight": 2.0
+      }
+    ]
+  },
+  {
+    "order_ids": [
+      "ord_00426",
+      "ord_02578"
+    ],
+    "size": 2,
+    "total_weight": 2.0,
+    "flagged": false,
+    "edges": [
+      {
+        "a": "ord_02578",
+        "b": "ord_00426",
+        "shared_attrs": [
+          "shipping_address"
+        ],
+        "weight": 2.0
+      }
+    ]
+  },
+  {
+    "order_ids": [
+      "ord_01479",
+      "ord_01906"
+    ],
+    "size": 2,
+    "total_weight": 2.0,
+    "flagged": false,
+    "edges": [
+      {
+        "a": "ord_01906",
+        "b": "ord_01479",
+        "shared_attrs": [
+          "shipping_address"
+        ],
+        "weight": 2.0
+      }
+    ]
+  },
+  {
+    "order_ids": [
+      "ord_legit0_0",
+      "ord_legit0_1"
+    ],
+    "size": 2,
+    "total_weight": 0.3,
+    "flagged": false,
+    "edges": [
+      {
+        "a": "ord_legit0_0",
+        "b": "ord_legit0_1",
+        "shared_attrs": [
+          "shipping_address"
+        ],
+        "weight": 0.3
+      }
+    ]
+  },
+  {
+    "order_ids": [
+      "ord_legit1_0",
+      "ord_legit1_1"
+    ],
+    "size": 2,
+    "total_weight": 0.3,
+    "flagged": false,
+    "edges": [
+      {
+        "a": "ord_legit1_0",
+        "b": "ord_legit1_1",
+        "shared_attrs": [
+          "shipping_address"
+        ],
+        "weight": 0.3
+      }
+    ]
+  }
+]

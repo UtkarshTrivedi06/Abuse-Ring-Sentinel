@@ -1,0 +1,429 @@
+{
+  "clusters": [
+    {
+      "order_ids": [
+        "ord_ring0_0",
+        "ord_ring0_1",
+        "ord_ring0_2",
+        "ord_ring0_3",
+        "ord_ring0_4"
+      ],
+      "size": 5,
+      "total_weight": 9.5,
+      "flagged": true,
+      "edges": [
+        {
+          "a": "ord_ring0_2",
+          "b": "ord_ring0_1",
+          "shared_attrs": [
+            "shipping_address"
+          ],
+          "weight": 2.0
+        },
+        {
+          "a": "ord_ring0_2",
+          "b": "ord_ring0_3",
+          "shared_attrs": [
+            "promo_code"
+          ],
+          "weight": 1.5
+        },
+        {
+          "a": "ord_ring0_3",
+          "b": "ord_ring0_4",
+          "shared_attrs": [
+            "device_id"
+          ],
+          "weight": 3.0
+        },
+        {
+          "a": "ord_ring0_0",
+          "b": "ord_ring0_1",
+          "shared_attrs": [
+            "device_id"
+          ],
+          "weight": 3.0
+        }
+      ],
+      "explanation": "[OFFLINE \u2014 not LLM-generated] 5 orders form a tightly connected cluster (weighted score 9.5) linked via device_id, promo_code, shipping_address. Notably, no single pair shares every attribute \u2014 the orders are connected through a CHAIN across device_id, promo_code, shipping_address, which is exactly the pattern a single-attribute check would miss. None of the accounts are KYC-verified. Recommended action: route to a fraud analyst for manual review before dispatch; do not auto-block.",
+      "orders": {
+        "ord_ring0_0": {
+          "kyc_verified": false,
+          "order_value": 4973.94,
+          "account_created_at": "2026-08-29",
+          "shipping_address": "Flat 716, Building 17, Koregaon Park, Mumbai"
+        },
+        "ord_ring0_1": {
+          "kyc_verified": false,
+          "order_value": 2975.65,
+          "account_created_at": "2026-08-29",
+          "shipping_address": "Flat 736, Building 9, Kothrud, Delhi"
+        },
+        "ord_ring0_2": {
+          "kyc_verified": false,
+          "order_value": 1128.81,
+          "account_created_at": "2026-08-29",
+          "shipping_address": "Flat 736, Building 9, Kothrud, Delhi"
+        },
+        "ord_ring0_3": {
+          "kyc_verified": false,
+          "order_value": 4531.5,
+          "account_created_at": "2026-08-29",
+          "shipping_address": "Flat 810, Building 22, Koregaon Park, Delhi"
+        },
+        "ord_ring0_4": {
+          "kyc_verified": false,
+          "order_value": 2374.24,
+          "account_created_at": "2026-08-29",
+          "shipping_address": "Flat 574, Building 37, Hinjewadi, Mumbai"
+        }
+      }
+    },
+    {
+      "order_ids": [
+        "ord_ring2_0",
+        "ord_ring2_1",
+        "ord_ring2_2",
+        "ord_ring2_3",
+        "ord_ring2_4"
+      ],
+      "size": 5,
+      "total_weight": 9.5,
+      "flagged": true,
+      "edges": [
+        {
+          "a": "ord_ring2_3",
+          "b": "ord_ring2_4",
+          "shared_attrs": [
+            "device_id"
+          ],
+          "weight": 3.0
+        },
+        {
+          "a": "ord_ring2_3",
+          "b": "ord_ring2_2",
+          "shared_attrs": [
+            "promo_code"
+          ],
+          "weight": 1.5
+        },
+        {
+          "a": "ord_ring2_1",
+          "b": "ord_ring2_0",
+          "shared_attrs": [
+            "device_id"
+          ],
+          "weight": 3.0
+        },
+        {
+          "a": "ord_ring2_1",
+          "b": "ord_ring2_2",
+          "shared_attrs": [
+            "shipping_address"
+          ],
+          "weight": 2.0
+        }
+      ],
+      "explanation": "[OFFLINE \u2014 not LLM-generated] 5 orders form a tightly connected cluster (weighted score 9.5) linked via device_id, promo_code, shipping_address. Notably, no single pair shares every attribute \u2014 the orders are connected through a CHAIN across device_id, promo_code, shipping_address, which is exactly the pattern a single-attribute check would miss. None of the accounts are KYC-verified. Recommended action: route to a fraud analyst for manual review before dispatch; do not auto-block.",
+      "orders": {
+        "ord_ring2_0": {
+          "kyc_verified": false,
+          "order_value": 4130.45,
+          "account_created_at": "2026-08-29",
+          "shipping_address": "Flat 636, Building 2, Koregaon Park, Mumbai"
+        },
+        "ord_ring2_1": {
+          "kyc_verified": false,
+          "order_value": 1011.64,
+          "account_created_at": "2026-08-29",
+          "shipping_address": "Flat 929, Building 40, Hinjewadi, Chennai"
+        },
+        "ord_ring2_2": {
+          "kyc_verified": false,
+          "order_value": 2674.24,
+          "account_created_at": "2026-08-29",
+          "shipping_address": "Flat 929, Building 40, Hinjewadi, Chennai"
+        },
+        "ord_ring2_3": {
+          "kyc_verified": false,
+          "order_value": 1623.04,
+          "account_created_at": "2026-08-29",
+          "shipping_address": "Flat 347, Building 37, Baner Road, Bengaluru"
+        },
+        "ord_ring2_4": {
+          "kyc_verified": false,
+          "order_value": 4785.09,
+          "account_created_at": "2026-08-29",
+          "shipping_address": "Flat 403, Building 9, Kothrud, Mumbai"
+        }
+      }
+    },
+    {
+      "order_ids": [
+        "ord_ring1_0",
+        "ord_ring1_1",
+        "ord_ring1_2",
+        "ord_ring1_3",
+        "ord_ring1_4"
+      ],
+      "size": 5,
+      "total_weight": 9.5,
+      "flagged": true,
+      "edges": [
+        {
+          "a": "ord_ring1_2",
+          "b": "ord_ring1_1",
+          "shared_attrs": [
+            "shipping_address"
+          ],
+          "weight": 2.0
+        },
+        {
+          "a": "ord_ring1_2",
+          "b": "ord_ring1_3",
+          "shared_attrs": [
+            "promo_code"
+          ],
+          "weight": 1.5
+        },
+        {
+          "a": "ord_ring1_0",
+          "b": "ord_ring1_1",
+          "shared_attrs": [
+            "device_id"
+          ],
+          "weight": 3.0
+        },
+        {
+          "a": "ord_ring1_4",
+          "b": "ord_ring1_3",
+          "shared_attrs": [
+            "device_id"
+          ],
+          "weight": 3.0
+        }
+      ],
+      "explanation": "[OFFLINE \u2014 not LLM-generated] 5 orders form a tightly connected cluster (weighted score 9.5) linked via device_id, promo_code, shipping_address. Notably, no single pair shares every attribute \u2014 the orders are connected through a CHAIN across device_id, promo_code, shipping_address, which is exactly the pattern a single-attribute check would miss. None of the accounts are KYC-verified. Recommended action: route to a fraud analyst for manual review before dispatch; do not auto-block.",
+      "orders": {
+        "ord_ring1_0": {
+          "kyc_verified": false,
+          "order_value": 4945.74,
+          "account_created_at": "2026-08-29",
+          "shipping_address": "Flat 871, Building 15, Baner Road, Mumbai"
+        },
+        "ord_ring1_1": {
+          "kyc_verified": false,
+          "order_value": 1989.97,
+          "account_created_at": "2026-08-29",
+          "shipping_address": "Flat 682, Building 37, Aundh, Pune"
+        },
+        "ord_ring1_2": {
+          "kyc_verified": false,
+          "order_value": 922.57,
+          "account_created_at": "2026-08-29",
+          "shipping_address": "Flat 682, Building 37, Aundh, Pune"
+        },
+        "ord_ring1_3": {
+          "kyc_verified": false,
+          "order_value": 4881.3,
+          "account_created_at": "2026-08-29",
+          "shipping_address": "Flat 161, Building 8, Hinjewadi, Hyderabad"
+        },
+        "ord_ring1_4": {
+          "kyc_verified": false,
+          "order_value": 1772.69,
+          "account_created_at": "2026-08-29",
+          "shipping_address": "Flat 39, Building 9, Koregaon Park, Mumbai"
+        }
+      }
+    },
+    {
+      "order_ids": [
+        "ord_01829",
+        "ord_01982"
+      ],
+      "size": 2,
+      "total_weight": 2.0,
+      "flagged": false,
+      "edges": [
+        {
+          "a": "ord_01829",
+          "b": "ord_01982",
+          "shared_attrs": [
+            "shipping_address"
+          ],
+          "weight": 2.0
+        }
+      ],
+      "explanation": null,
+      "orders": {
+        "ord_01829": {
+          "kyc_verified": true,
+          "order_value": 3331.97,
+          "account_created_at": "2026-06-16",
+          "shipping_address": "Flat 427, Building 28, Camp, Mumbai"
+        },
+        "ord_01982": {
+          "kyc_verified": false,
+          "order_value": 3776.45,
+          "account_created_at": "2026-03-23",
+          "shipping_address": "Flat 427, Building 28, Camp, Mumbai"
+        }
+      }
+    },
+    {
+      "order_ids": [
+        "ord_00426",
+        "ord_02578"
+      ],
+      "size": 2,
+      "total_weight": 2.0,
+      "flagged": false,
+      "edges": [
+        {
+          "a": "ord_02578",
+          "b": "ord_00426",
+          "shared_attrs": [
+            "shipping_address"
+          ],
+          "weight": 2.0
+        }
+      ],
+      "explanation": null,
+      "orders": {
+        "ord_00426": {
+          "kyc_verified": false,
+          "order_value": 2283.66,
+          "account_created_at": "2026-07-13",
+          "shipping_address": "Flat 799, Building 4, Aundh, Bengaluru"
+        },
+        "ord_02578": {
+          "kyc_verified": false,
+          "order_value": 1754.92,
+          "account_created_at": "2026-05-03",
+          "shipping_address": "Flat 799, Building 4, Aundh, Bengaluru"
+        }
+      }
+    },
+    {
+      "order_ids": [
+        "ord_01479",
+        "ord_01906"
+      ],
+      "size": 2,
+      "total_weight": 2.0,
+      "flagged": false,
+      "edges": [
+        {
+          "a": "ord_01906",
+          "b": "ord_01479",
+          "shared_attrs": [
+            "shipping_address"
+          ],
+          "weight": 2.0
+        }
+      ],
+      "explanation": null,
+      "orders": {
+        "ord_01479": {
+          "kyc_verified": false,
+          "order_value": 921.1,
+          "account_created_at": "2025-09-22",
+          "shipping_address": "Flat 170, Building 39, Viman Nagar, Hyderabad"
+        },
+        "ord_01906": {
+          "kyc_verified": true,
+          "order_value": 4375.57,
+          "account_created_at": "2025-12-08",
+          "shipping_address": "Flat 170, Building 39, Viman Nagar, Hyderabad"
+        }
+      }
+    },
+    {
+      "order_ids": [
+        "ord_legit0_0",
+        "ord_legit0_1"
+      ],
+      "size": 2,
+      "total_weight": 0.3,
+      "flagged": false,
+      "edges": [
+        {
+          "a": "ord_legit0_0",
+          "b": "ord_legit0_1",
+          "shared_attrs": [
+            "shipping_address"
+          ],
+          "weight": 0.3
+        }
+      ],
+      "explanation": "[OFFLINE \u2014 not LLM-generated] 2 orders share shipping_address, but the weighted score (0.3) stays below the review threshold \u2014 the accounts involved are older and/or KYC-verified, which is far more consistent with an innocent explanation (e.g. shared household address) than a coordinated ring. Recommended action: no action needed, do not add to review queue.",
+      "orders": {
+        "ord_legit0_0": {
+          "kyc_verified": true,
+          "order_value": 1443.4,
+          "account_created_at": "2025-11-24",
+          "shipping_address": "Flat 554, Building 8, Camp, Chennai"
+        },
+        "ord_legit0_1": {
+          "kyc_verified": true,
+          "order_value": 4318.91,
+          "account_created_at": "2025-10-25",
+          "shipping_address": "Flat 554, Building 8, Camp, Chennai"
+        }
+      }
+    },
+    {
+      "order_ids": [
+        "ord_legit1_0",
+        "ord_legit1_1"
+      ],
+      "size": 2,
+      "total_weight": 0.3,
+      "flagged": false,
+      "edges": [
+        {
+          "a": "ord_legit1_0",
+          "b": "ord_legit1_1",
+          "shared_attrs": [
+            "shipping_address"
+          ],
+          "weight": 0.3
+        }
+      ],
+      "explanation": null,
+      "orders": {
+        "ord_legit1_0": {
+          "kyc_verified": true,
+          "order_value": 4201.97,
+          "account_created_at": "2025-11-24",
+          "shipping_address": "Flat 926, Building 19, Baner Road, Delhi"
+        },
+        "ord_legit1_1": {
+          "kyc_verified": true,
+          "order_value": 4697.75,
+          "account_created_at": "2025-10-25",
+          "shipping_address": "Flat 926, Building 19, Baner Road, Delhi"
+        }
+      }
+    }
+  ],
+  "audit": {
+    "generated_at": "2026-08-31T18:40:50.267203",
+    "total_orders_scanned": 3019,
+    "known_injected_rings": 3,
+    "rings_correctly_caught": 3,
+    "recall_on_injected_rings": 1.0,
+    "clusters_flagged": 3,
+    "false_positive_clusters": 0,
+    "precision_on_flagged_clusters": 1.0,
+    "legit_lookalike_pairs_correctly_ignored": 2,
+    "legit_lookalike_pairs_incorrectly_flagged": 0,
+    "review_queue_reduction": {
+      "raw_orders": 3019,
+      "clusters_worth_reviewing": 3,
+      "reduction_pct": 99.901
+    },
+    "honest_caveat": "Precision/recall above are measured against DELIBERATELY INJECTED, KNOWN ring patterns in synthetic data. This validates that the detection MECHANISM works correctly on a known pattern \u2014 it does not, by itself, prove real-world generalization, which would require real (anonymized) order data this project has no access to."
+  }
+}

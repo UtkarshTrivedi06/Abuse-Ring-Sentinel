@@ -1,0 +1,9 @@
+networkx>=3.0
+matplotlib>=3.7
+requests>=2.28
+supabase>=2.4.0
+
+# Optional — only needed if you specifically want the Anthropic/Claude
+# provider path. Groq and Gemini (the free options) only need `requests`,
+# already listed above.
+anthropic>=0.40.0
