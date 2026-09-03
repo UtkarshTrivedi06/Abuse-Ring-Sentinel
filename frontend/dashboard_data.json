@@ -11,16 +11,16 @@
       "flagged": true,
       "edges": [
         {
-          "a": "ord_ring1_hub",
-          "b": "ord_ring1_2",
+          "a": "ord_ring1_2",
+          "b": "ord_ring1_hub",
           "shared_attrs": [
             "device_id"
           ],
           "weight": 3.0
         },
         {
-          "a": "ord_ring1_hub",
-          "b": "ord_ring1_4",
+          "a": "ord_ring1_4",
+          "b": "ord_ring1_hub",
           "shared_attrs": [
             "promo_code",
             "payment_fingerprint"
@@ -35,19 +35,19 @@
         "ord_ring1_2": {
           "kyc_verified": false,
           "order_value": 1772.69,
-          "account_created_at": "2026-09-01",
+          "account_created_at": "2026-09-02",
           "shipping_address": "Flat 39, Building 9, Koregaon Park, Mumbai"
         },
         "ord_ring1_4": {
           "kyc_verified": false,
           "order_value": 3200.31,
-          "account_created_at": "2026-09-01",
+          "account_created_at": "2026-09-02",
           "shipping_address": "Flat 970, Building 15, MG Road, Pune"
         },
         "ord_ring1_hub": {
           "kyc_verified": false,
           "order_value": 3636.67,
-          "account_created_at": "2026-09-01",
+          "account_created_at": "2026-09-02",
           "shipping_address": "Flat 655, Building 2, Hinjewadi, Mumbai"
         }
       }
@@ -77,13 +77,13 @@
         "ord_ring2_0": {
           "kyc_verified": false,
           "order_value": 1679.63,
-          "account_created_at": "2026-08-31",
+          "account_created_at": "2026-09-01",
           "shipping_address": "Flat 934, Building 8, Camp, Chennai"
         },
         "ord_ring2_1": {
           "kyc_verified": false,
           "order_value": 4407.36,
-          "account_created_at": "2026-08-31",
+          "account_created_at": "2026-09-01",
           "shipping_address": "Flat 978, Building 17, Viman Nagar, Mumbai"
         }
       }
@@ -98,8 +98,8 @@
       "flagged": false,
       "edges": [
         {
-          "a": "ord_ring0_3",
-          "b": "ord_ring0_4",
+          "a": "ord_ring0_4",
+          "b": "ord_ring0_3",
           "shared_attrs": [
             "payment_fingerprint"
           ],
@@ -113,13 +113,13 @@
         "ord_ring0_3": {
           "kyc_verified": false,
           "order_value": 1205.04,
-          "account_created_at": "2026-09-01",
+          "account_created_at": "2026-09-02",
           "shipping_address": "Flat 682, Building 37, Aundh, Pune"
         },
         "ord_ring0_4": {
           "kyc_verified": false,
           "order_value": 1519.75,
-          "account_created_at": "2026-09-01",
+          "account_created_at": "2026-09-02",
           "shipping_address": "Flat 134, Building 40, Kothrud, Mumbai"
         }
       }
@@ -134,8 +134,8 @@
       "flagged": false,
       "edges": [
         {
-          "a": "ord_01479",
-          "b": "ord_01906",
+          "a": "ord_01906",
+          "b": "ord_01479",
           "shared_attrs": [
             "shipping_address"
           ],
@@ -149,13 +149,13 @@
         "ord_01479": {
           "kyc_verified": false,
           "order_value": 921.1,
-          "account_created_at": "2025-09-24",
+          "account_created_at": "2025-09-25",
           "shipping_address": "Flat 170, Building 39, Viman Nagar, Hyderabad"
         },
         "ord_01906": {
           "kyc_verified": true,
           "order_value": 4375.57,
-          "account_created_at": "2025-12-10",
+          "account_created_at": "2025-12-11",
           "shipping_address": "Flat 170, Building 39, Viman Nagar, Hyderabad"
         }
       }
@@ -170,8 +170,8 @@
       "flagged": false,
       "edges": [
         {
-          "a": "ord_ring0_0",
-          "b": "ord_ring0_1",
+          "a": "ord_ring0_1",
+          "b": "ord_ring0_0",
           "shared_attrs": [
             "shipping_address"
           ],
@@ -185,13 +185,13 @@
         "ord_ring0_0": {
           "kyc_verified": false,
           "order_value": 2019.91,
-          "account_created_at": "2026-09-01",
+          "account_created_at": "2026-09-02",
           "shipping_address": "Flat 760, Building 20, Hinjewadi, Bengaluru"
         },
         "ord_ring0_1": {
           "kyc_verified": false,
           "order_value": 2931.4,
-          "account_created_at": "2026-09-01",
+          "account_created_at": "2026-09-02",
           "shipping_address": "Flat 760, Building 20, Hinjewadi, Bengaluru"
         }
       }
@@ -221,13 +221,13 @@
         "ord_01829": {
           "kyc_verified": true,
           "order_value": 3331.97,
-          "account_created_at": "2026-06-18",
+          "account_created_at": "2026-06-19",
           "shipping_address": "Flat 427, Building 28, Camp, Mumbai"
         },
         "ord_01982": {
           "kyc_verified": false,
           "order_value": 3776.45,
-          "account_created_at": "2026-03-25",
+          "account_created_at": "2026-03-26",
           "shipping_address": "Flat 427, Building 28, Camp, Mumbai"
         }
       }
@@ -257,13 +257,13 @@
         "ord_00426": {
           "kyc_verified": false,
           "order_value": 2283.66,
-          "account_created_at": "2026-07-15",
+          "account_created_at": "2026-07-16",
           "shipping_address": "Flat 799, Building 4, Aundh, Bengaluru"
         },
         "ord_02578": {
           "kyc_verified": false,
           "order_value": 1754.92,
-          "account_created_at": "2026-05-05",
+          "account_created_at": "2026-05-06",
           "shipping_address": "Flat 799, Building 4, Aundh, Bengaluru"
         }
       }
@@ -293,13 +293,13 @@
         "ord_ring2_3": {
           "kyc_verified": false,
           "order_value": 3298.02,
-          "account_created_at": "2026-08-31",
+          "account_created_at": "2026-09-01",
           "shipping_address": "Flat 278, Building 40, Baner Road, Pune"
         },
         "ord_ring2_4": {
           "kyc_verified": false,
           "order_value": 2978.51,
-          "account_created_at": "2026-08-31",
+          "account_created_at": "2026-09-01",
           "shipping_address": "Flat 94, Building 33, Kothrud, Hyderabad"
         }
       }
@@ -329,13 +329,13 @@
         "ord_legit1_0": {
           "kyc_verified": true,
           "order_value": 4532.28,
-          "account_created_at": "2025-11-26",
+          "account_created_at": "2025-11-27",
           "shipping_address": "Flat 41, Building 31, Wakad, Mumbai"
         },
         "ord_legit1_1": {
           "kyc_verified": true,
           "order_value": 1947.19,
-          "account_created_at": "2025-10-27",
+          "account_created_at": "2025-10-28",
           "shipping_address": "Flat 41, Building 31, Wakad, Mumbai"
         }
       }
@@ -365,20 +365,20 @@
         "ord_legit0_0": {
           "kyc_verified": true,
           "order_value": 3442.79,
-          "account_created_at": "2025-11-26",
+          "account_created_at": "2025-11-27",
           "shipping_address": "Flat 626, Building 21, Koregaon Park, Delhi"
         },
         "ord_legit0_1": {
           "kyc_verified": true,
           "order_value": 212.17,
-          "account_created_at": "2025-10-27",
+          "account_created_at": "2025-10-28",
           "shipping_address": "Flat 626, Building 21, Koregaon Park, Delhi"
         }
       }
     }
   ],
   "audit": {
-    "generated_at": "2026-09-02T18:27:43.370226",
+    "generated_at": "2026-09-03T14:43:46.372018",
     "total_orders_scanned": 3019,
     "known_injected_rings": 3,
     "rings_correctly_caught": 1,
@@ -401,7 +401,7 @@
       "name": "Data Generation",
       "description": "Generating 3000 normal orders + 3 rings + 2 legit lookalikes",
       "status": "ok",
-      "elapsed_s": 0.107,
+      "elapsed_s": 0.106,
       "detail": "3019 orders  \u00b7  15 ring-injected  \u00b7  3004 normal"
     },
     {
@@ -409,7 +409,7 @@
       "name": "Graph Construction",
       "description": "Drawing edges between orders sharing device / address / promo / payment fingerprint",
       "status": "ok",
-      "elapsed_s": 0.014,
+      "elapsed_s": 0.011,
       "detail": "3019 nodes  \u00b7  11 edges"
     },
     {
@@ -417,7 +417,7 @@
       "name": "Candidate Discovery",
       "description": "Identifying all connected order clusters via multi-attribute graph",
       "status": "ok",
-      "elapsed_s": 0.004,
+      "elapsed_s": 0.003,
       "detail": "10 candidate clusters found"
     },
     {
@@ -433,7 +433,7 @@
       "name": "Metrics Evaluation",
       "description": "Computing precision, recall, and review-queue reduction",
       "status": "ok",
-      "elapsed_s": 0.002,
+      "elapsed_s": 0.003,
       "detail": ""
     },
     {
@@ -441,7 +441,7 @@
       "name": "Dashboard Build",
       "description": "Compiling frontend/dashboard_data.json from pipeline artifacts",
       "status": "ok",
-      "elapsed_s": 0.002,
+      "elapsed_s": 0.001,
       "detail": "frontend/dashboard_data.json  \u00b7  10 clusters"
     }
   ]

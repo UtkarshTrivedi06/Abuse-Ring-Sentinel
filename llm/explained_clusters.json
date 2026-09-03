@@ -9,16 +9,16 @@
     "total_weight": 7.0,
     "edges": [
       {
-        "a": "ord_ring1_hub",
-        "b": "ord_ring1_2",
+        "a": "ord_ring1_2",
+        "b": "ord_ring1_hub",
         "shared_attrs": [
           "device_id"
         ],
         "weight": 3.0
       },
       {
-        "a": "ord_ring1_hub",
-        "b": "ord_ring1_4",
+        "a": "ord_ring1_4",
+        "b": "ord_ring1_hub",
         "shared_attrs": [
           "promo_code",
           "payment_fingerprint"
@@ -62,8 +62,8 @@
     "total_weight": 2.5,
     "edges": [
       {
-        "a": "ord_ring0_3",
-        "b": "ord_ring0_4",
+        "a": "ord_ring0_4",
+        "b": "ord_ring0_3",
         "shared_attrs": [
           "payment_fingerprint"
         ],
@@ -84,8 +84,8 @@
     "total_weight": 2.0,
     "edges": [
       {
-        "a": "ord_01479",
-        "b": "ord_01906",
+        "a": "ord_01906",
+        "b": "ord_01479",
         "shared_attrs": [
           "shipping_address"
         ],
@@ -106,8 +106,8 @@
     "total_weight": 2.0,
     "edges": [
       {
-        "a": "ord_ring0_0",
-        "b": "ord_ring0_1",
+        "a": "ord_ring0_1",
+        "b": "ord_ring0_0",
         "shared_attrs": [
           "shipping_address"
         ],
