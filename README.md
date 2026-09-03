@@ -55,26 +55,12 @@ python agent.py
 # 4. Open http://localhost:8000/ to view the live investigation dashboard
 ```
 
-## 5-Minute Presentation Script
+## How It Works
 
-**[0:00–0:45] The Problem**
-> *"Tools like Thirdwatch are really good at scoring individual transactions in real time. But real fraud rings don't operate as single orders — they work in groups. A fraud ring will spin up 4 or 5 fresh accounts, place completely normal-looking orders, and intentionally mix their details: Order 1 shares a phone with Order 2, Order 2 shares an address with Order 3, and Order 3 shares a card with Order 4. Individually, every order looks safe. And a simple database query like `GROUP BY device_id` completely misses it because no single field connects all of them."*
+1. **Multi-Attribute Graph Modeling**: Links incoming transactions across shared device IDs, delivery addresses, payment card fingerprints, and promo codes.
+2. **Component Discovery**: Discovers connected clusters to surface multi-hop syndicates that evade single-attribute SQL queries.
+3. **Smart False-Positive Dampening**: Applies an 85% score reduction for mature, KYC-verified accounts to prevent flagging legitimate households, dorms, and shared office networks.
+4. **Autonomous AI Sentinel Agent**: Runs multi-provider LLM forensic analysis (Gemini / Groq / Offline) to evaluate graph topology and creation velocity, generating plain-English `[OBSERVATION]`, `[ANALYSIS]`, `[VERDICT]`, and `[RECOMMENDED ACTION]` reports.
+5. **Analyst Review Console**: Interactive local dashboard with live graph visualization, metric tracking, and single-click cluster escalations.
 
-**[0:45–1:45] How the Graph Works**
-> *(Show the network graph on the dashboard at `http://localhost:8000`)*
-> *"To fix this, Abuse-Ring Sentinel links incoming orders into a connection graph. Every time two orders share a device, an address, a card, or a promo code, we draw a weighted connection between them. Even if Order 1 and Order 4 have completely different cards and addresses, the graph traverses the intermediate hops and surfaces the entire ring as one single cluster in milliseconds."*
-
-**[1:45–2:45] The AI Agent Breakdown**
-> *(Click a flagged cluster in the dashboard to show the AI report)*
-> *"Once we have a connected cluster, our AI Agent looks at the full picture — not just the graph score, but account creation dates, KYC status, and order amounts. Instead of giving the fraud team a random black-box score, the agent writes a clear, plain-English summary: what it observed, why it looks suspicious, a clear verdict, and a concrete action to take before dispatch."*
-
-**[2:45–3:30] Avoiding False Positives (The Roommate Problem)**
-> *(Click a cleared cluster or point to dampening)*
-> *"A big challenge in fraud detection is not annoying real users. Two roommates or family members living in the same apartment will naturally share a shipping address or Wi-Fi. We handle this with dampening: if accounts are older and KYC-verified, the system drops the connection weight by 85%. The AI agent reviews it, recognizes it's just a normal household, and clears the orders without adding friction."*
-
-**[3:30–4:15] The Results**
-> *(Point to the metrics at the top of the dashboard)*
-> *"In our test run with 3,000+ orders, Sentinel caught 100% of the injected fraud rings and reduced the manual review queue by over 99%. Instead of a human analyst having to sift through thousands of individual orders, they only have to look at a handful of high-signal clusters. To be completely honest, these numbers are tested against synthetic ring patterns to prove the graph and AI logic work, and the next step would be validating on real anonymized merchant logs."*
-
-**[4:15–5:00] Wrap-up**
-> *"Sentinel acts as an intelligent assistant for fraud analysts — it explains every decision clearly, cuts manual review time drastically, and stops coordinated rings before fulfillment. Thank you, and I'd love to take any questions!"*
+For the presentation and video demo walkthrough script, see [docs/PITCH_SCRIPT.md](docs/PITCH_SCRIPT.md).
