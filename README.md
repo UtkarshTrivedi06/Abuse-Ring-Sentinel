@@ -55,26 +55,26 @@ python agent.py
 # 4. Open http://localhost:8000/ to view the live investigation dashboard
 ```
 
-## 5-Minute Pitch & Presentation Script
+## 5-Minute Presentation Script
 
-**[0:00–0:45] The Gap: What Single-Order Scoring Can't See**
-> *"Thirdwatch and traditional fraud systems score transactions in real-time at checkout. They are effective at catching obvious bad actors on a single transaction, but they have a structural blind spot: coordinated fraud rings. A syndicate creates 5 fresh accounts, each placing an individually plausible order, but deliberately hops attributes — Account 1 shares a device with Account 2, Account 2 shares an address with Account 3, and Account 3 shares a payment card with Account 4. No single order trips a risk rule, and no single SQL `GROUP BY` sees the whole ring."*
+**[0:00–0:45] The Problem**
+> *"Tools like Thirdwatch are really good at scoring individual transactions in real time. But real fraud rings don't operate as single orders — they work in groups. A fraud ring will spin up 4 or 5 fresh accounts, place completely normal-looking orders, and intentionally mix their details: Order 1 shares a phone with Order 2, Order 2 shares an address with Order 3, and Order 3 shares a card with Order 4. Individually, every order looks safe. And a simple database query like `GROUP BY device_id` completely misses it because no single field connects all of them."*
 
-**[0:45–1:45] The Mechanism: Multi-Attribute Graph Traversal**
-> *(Show the interactive Network Graph on the dashboard at `http://localhost:8000`)*
-> *"Abuse-Ring Sentinel models incoming transactions as a multi-attribute connected graph. Nodes are orders, and weighted edges represent shared hardware devices, delivery drop points, payment fingerprints, and promo codes. By executing graph component discovery, Sentinel traverses the hops and unmasks the entire syndicate as a unified cluster in milliseconds."*
+**[0:45–1:45] How the Graph Works**
+> *(Show the network graph on the dashboard at `http://localhost:8000`)*
+> *"To fix this, Abuse-Ring Sentinel links incoming orders into a connection graph. Every time two orders share a device, an address, a card, or a promo code, we draw a weighted connection between them. Even if Order 1 and Order 4 have completely different cards and addresses, the graph traverses the intermediate hops and surfaces the entire ring as one single cluster in milliseconds."*
 
-**[1:45–2:45] The Autonomous AI Sentinel Agent**
-> *(Click a flagged cluster and showcase the AI Agent forensic report)*
-> *"Once candidate clusters are discovered, our Autonomous AI Agent (powered by Gemini / Groq / Sentinel Engine) conducts an automated forensic audit. It analyzes graph topology, account creation velocity, order values, and KYC verification to generate a structured intelligence report: `[OBSERVATION]`, `[ANALYSIS]`, `[VERDICT]`, and `[RECOMMENDED ACTION]`. It flags coordinated attacks while explaining its exact rationale in plain English."*
+**[1:45–2:45] The AI Agent Breakdown**
+> *(Click a flagged cluster in the dashboard to show the AI report)*
+> *"Once we have a connected cluster, our AI Agent looks at the full picture — not just the graph score, but account creation dates, KYC status, and order amounts. Instead of giving the fraud team a random black-box score, the agent writes a clear, plain-English summary: what it observed, why it looks suspicious, a clear verdict, and a concrete action to take before dispatch."*
 
-**[2:45–3:30] False-Positive Resistance: Smart Dampening**
-> *(Click a cleared cluster or run `python -m tests.near_miss_case`)*
-> *"The biggest fear in fraud prevention is blocking legitimate customers, like roommates or families sharing an apartment address and Wi-Fi. Sentinel solves this through structural dampening: if accounts are mature (>180 days) and KYC-verified, the connection weight is dampened by 85% (0.15x multiplier). The AI Agent recognizes legitimate domestic patterns and issues a `[VERDICT] CLEARED`, preventing costly false declines."*
+**[2:45–3:30] Avoiding False Positives (The Roommate Problem)**
+> *(Click a cleared cluster or point to dampening)*
+> *"A big challenge in fraud detection is not annoying real users. Two roommates or family members living in the same apartment will naturally share a shipping address or Wi-Fi. We handle this with dampening: if accounts are older and KYC-verified, the system drops the connection weight by 85%. The AI agent reviews it, recognizes it's just a normal household, and clears the orders without adding friction."*
 
-**[3:30–4:15] The Numbers (Delivered Honestly)**
-> *(Point to the Dashboard Metrics bar)*
-> *"In our benchmark scan of 3,019 orders, Sentinel discovered the injected fraud rings with 100% recall while delivering a 99.8% Review-Queue Reduction — compressing thousands of raw orders into just a handful of high-signal clusters for human analysts. We state our honest caveat clearly: these metrics validate the detection mechanism on known patterns, and real-world deployment would scale with anonymized production logs."*
+**[3:30–4:15] The Results**
+> *(Point to the metrics at the top of the dashboard)*
+> *"In our test run with 3,000+ orders, Sentinel caught 100% of the injected fraud rings and reduced the manual review queue by over 99%. Instead of a human analyst having to sift through thousands of individual orders, they only have to look at a handful of high-signal clusters. To be completely honest, these numbers are tested against synthetic ring patterns to prove the graph and AI logic work, and the next step would be validating on real anonymized merchant logs."*
 
-**[4:15–5:00] Architecture, Limits & Next Steps**
-> *"Sentinel operates as an auditable human-in-the-loop copilot — it flags and recommends, never silently auto-blocking legitimate revenue. For enterprise scale, the batch pipeline transitions cleanly into incremental streaming graph updates via Neo4j or Memgraph with our Supabase cloud sync integration. Sentinel turns disconnected transactions into connected fraud intelligence."*
+**[4:15–5:00] Wrap-up**
+> *"Sentinel acts as an intelligent assistant for fraud analysts — it explains every decision clearly, cuts manual review time drastically, and stops coordinated rings before fulfillment. Thank you, and I'd love to take any questions!"*
