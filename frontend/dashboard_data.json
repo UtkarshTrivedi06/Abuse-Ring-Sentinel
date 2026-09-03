@@ -11,14 +11,6 @@
       "flagged": true,
       "edges": [
         {
-          "a": "ord_ring1_2",
-          "b": "ord_ring1_hub",
-          "shared_attrs": [
-            "device_id"
-          ],
-          "weight": 3.0
-        },
-        {
           "a": "ord_ring1_4",
           "b": "ord_ring1_hub",
           "shared_attrs": [
@@ -26,11 +18,19 @@
             "payment_fingerprint"
           ],
           "weight": 4.0
+        },
+        {
+          "a": "ord_ring1_hub",
+          "b": "ord_ring1_2",
+          "shared_attrs": [
+            "device_id"
+          ],
+          "weight": 3.0
         }
       ],
-      "explanation": "[OBSERVATION]\nAutonomous Agent identified 3 connected orders totaling \u20b98,609.67 linked via device_id, payment_fingerprint, promo_code.\n\n[ANALYSIS]\nForensic Audit Score: 7.00. Graph analysis reveals an attribute-hopping chain across device_id, payment_fingerprint, promo_code. Individual pairs do not share all credentials, demonstrating deliberate evasion of single-attribute fraud filters. All accounts in this cluster are unverified and recently created.\n\n[VERDICT]\nFLAGGED. High-risk coordinated fraud ring pattern detected.\n\n[RECOMMENDED ACTION]\nEscalate cluster to senior fraud analyst queue for immediate pre-dispatch hold. Do not auto-cancel.",
-      "llm_provider": "offline-agent",
-      "llm_model": "Sentinel-Agent-v1",
+      "explanation": "[OBSERVATION]\nCluster size of 3 orders totaling \u20b98,609.67, characterized by unverified KYC status across all accounts, identical creation dates (2026-09-02), and multi-attribute links involving shared promo codes, payment fingerprints, and device IDs forming a connected network graph.\n\n[ANALYSIS]\nThe graph topology exhibits a multi-hop hub-and-spoke structure where `ord_ring1_hub` connects to `ord_ring1_4` via payment and promotional attributes (weight 4.0) and to `ord_ring1_2` via a shared device identifier (weight 3.0). All participating accounts share identical creation dates on September 2, 2026, and crucially lack KYC verification. The absence of mature or verified accounts eliminates the possibility of benign household or co-working aggregation, pointing instead to a synthetic or automated fraud ring utilizing fresh accounts to rapidly exploit promotional offers and payment channels.\n\n[VERDICT]\nFLAGGED. This cluster exhibits classic forensic markers of a coordinated synthetic fraud ring operating through fresh, unverified accounts linked by multi-attribute hopping.\n\n[RECOMMENDED ACTION]\nImmediately suspend all three accounts (`ord_ring1_hub`, `ord_ring1_2`, and `ord_ring1_4`), cancel pending fulfillment, and blacklist the associated device IDs and payment fingerprints.",
+      "llm_provider": "gemini",
+      "llm_model": "gemini-flash-lite-latest",
       "orders": {
         "ord_ring1_2": {
           "kyc_verified": false,
@@ -59,20 +59,20 @@
       ],
       "size": 2,
       "total_weight": 2.5,
-      "flagged": false,
+      "flagged": true,
       "edges": [
         {
-          "a": "ord_ring2_1",
-          "b": "ord_ring2_0",
+          "a": "ord_ring2_0",
+          "b": "ord_ring2_1",
           "shared_attrs": [
             "payment_fingerprint"
           ],
           "weight": 2.5
         }
       ],
-      "explanation": "[OBSERVATION]\nAutonomous Agent evaluated 2 orders linked via payment_fingerprint.\n\n[ANALYSIS]\nForensic Audit Score: 2.50 (below risk threshold 4.0). Dampening factors applied due to low connection density.\n\n[VERDICT]\nCLEARED. Consistent with legitimate shared network activity (e.g. household/office).\n\n[RECOMMENDED ACTION]\nClear cluster for normal order fulfillment. Maintain routine logging.",
-      "llm_provider": "offline-agent",
-      "llm_model": "Sentinel-Agent-v1",
+      "explanation": "[OBSERVATION]\nCluster size is 2 orders with a total value of \u20b96,086.99 (ord_ring2_0: \u20b91,679.63, ord_ring2_1: \u20b94,407.36), created on the same date (2026-09-01) and linked by a single high-weight shared payment fingerprint attribute edge (weight: 2.5).\n\n[ANALYSIS]\nThe graph topology is a direct dyad connection between two orders sharing a single payment fingerprint. Both accounts lack KYC verification (kyc_verified=False) and were created on the exact same date (2026-09-01), indicating freshly minted accounts engaging in velocity behavior with synchronized payment instrumentation. The lack of account maturity or verified identity combined with a shared payment fingerprint across multiple distinct order IDs strongly points toward synthetic identity creation or card-testing/stolen payment instrument utilization.\n\n[VERDICT]\nFLAGGED: The cluster exhibits high-risk synthetic or compromised payment indicators characterized by simultaneous order creation on unverified, same-day accounts sharing a high-weight payment fingerprint.\n\n[RECOMMENDED ACTION]\nPlace both orders on manual review, temporarily block the associated payment fingerprint, and request immediate 2FA/KYC verification before fulfillment.",
+      "llm_provider": "gemini",
+      "llm_model": "gemini-flash-lite-latest",
       "orders": {
         "ord_ring2_0": {
           "kyc_verified": false,
@@ -95,20 +95,20 @@
       ],
       "size": 2,
       "total_weight": 2.5,
-      "flagged": false,
+      "flagged": true,
       "edges": [
         {
-          "a": "ord_ring0_4",
-          "b": "ord_ring0_3",
+          "a": "ord_ring0_3",
+          "b": "ord_ring0_4",
           "shared_attrs": [
             "payment_fingerprint"
           ],
           "weight": 2.5
         }
       ],
-      "explanation": "[OBSERVATION]\nAutonomous Agent evaluated 2 orders linked via payment_fingerprint.\n\n[ANALYSIS]\nForensic Audit Score: 2.50 (below risk threshold 4.0). Dampening factors applied due to low connection density.\n\n[VERDICT]\nCLEARED. Consistent with legitimate shared network activity (e.g. household/office).\n\n[RECOMMENDED ACTION]\nClear cluster for normal order fulfillment. Maintain routine logging.",
-      "llm_provider": "offline-agent",
-      "llm_model": "Sentinel-Agent-v1",
+      "explanation": "[OBSERVATION]\nCluster contains 2 orders (ord_ring0_3 and ord_ring0_4) with a combined value of \u20b92,724.79, created on the same day (2026-09-02), linked by a shared payment fingerprint with a connection score of 2.5.\n\n[ANALYSIS]\nThe cluster consists of unverified (KYC-unverified) accounts created on the exact same date. The orders share a direct payment fingerprint link. While the cluster size is small, the combination of unverified KYC status, same-day account creation, and shared payment attributes strongly indicates synthetic or coordinated transaction behavior rather than organic usage.\n\n[VERDICT]\nFLAGGED. The cluster exhibits high-risk indicators of coordinated fraud due to same-day creation and shared payment fingerprints across unverified accounts.\n\n[RECOMMENDED ACTION]\nPlace both orders on manual review, block the shared payment fingerprint temporarily, and require mandatory KYC verification before fulfillment.",
+      "llm_provider": "gemini",
+      "llm_model": "gemini-flash-lite-latest",
       "orders": {
         "ord_ring0_3": {
           "kyc_verified": false,
@@ -134,17 +134,17 @@
       "flagged": false,
       "edges": [
         {
-          "a": "ord_01906",
-          "b": "ord_01479",
+          "a": "ord_01479",
+          "b": "ord_01906",
           "shared_attrs": [
             "shipping_address"
           ],
           "weight": 2.0
         }
       ],
-      "explanation": "[OBSERVATION]\nAutonomous Agent evaluated 2 orders linked via shipping_address.\n\n[ANALYSIS]\nForensic Audit Score: 2.00 (below risk threshold 4.0). Dampening factors applied due to KYC verification and account maturity.\n\n[VERDICT]\nCLEARED. Consistent with legitimate shared network activity (e.g. household/office).\n\n[RECOMMENDED ACTION]\nClear cluster for normal order fulfillment. Maintain routine logging.",
-      "llm_provider": "offline-agent",
-      "llm_model": "Sentinel-Agent-v1",
+      "explanation": "[OBSERVATION]\nCluster consists of 2 orders with a total combined value of \u20b95,296.67, linked exclusively by a shared shipping address (edge weight: 2.0).\n\n[ANALYSIS]\nThe graph topology is a simple binary connection based on a single shared attribute (shipping address). However, the cluster exhibits conflicting legitimacy indicators: `ord_01479` is an unverified account (`kyc_verified=False`) created recently on 2025-09-25 with a lower order value (\u20b9921.10), while `ord_01906` is a mature, KYC-verified account (`kyc_verified=True`) created significantly later on 2025-12-11 with a higher order value (\u20b94,375.57). The presence of a KYC-verified account strongly points toward legitimate shared household or multi-user residential activity rather than a coordinated synthetic fraud ring, as fraudsters typically do not maintain verified KYC profiles on aging accounts.\n\n[VERDICT]\nCLEARED. The shared shipping address is substantiated by a legitimate KYC-verified account, indicating standard household or shared-address commerce rather than a coordinated fraud ring.\n\n[RECOMMENDED ACTION]\nRelease both orders for fulfillment without manual intervention.",
+      "llm_provider": "gemini",
+      "llm_model": "gemini-flash-lite-latest",
       "orders": {
         "ord_01479": {
           "kyc_verified": false,
@@ -167,20 +167,20 @@
       ],
       "size": 2,
       "total_weight": 2.0,
-      "flagged": false,
+      "flagged": true,
       "edges": [
         {
-          "a": "ord_ring0_1",
-          "b": "ord_ring0_0",
+          "a": "ord_ring0_0",
+          "b": "ord_ring0_1",
           "shared_attrs": [
             "shipping_address"
           ],
           "weight": 2.0
         }
       ],
-      "explanation": "[OBSERVATION]\nAutonomous Agent evaluated 2 orders linked via shipping_address.\n\n[ANALYSIS]\nForensic Audit Score: 2.00 (below risk threshold 4.0). Dampening factors applied due to low connection density.\n\n[VERDICT]\nCLEARED. Consistent with legitimate shared network activity (e.g. household/office).\n\n[RECOMMENDED ACTION]\nClear cluster for normal order fulfillment. Maintain routine logging.",
-      "llm_provider": "offline-agent",
-      "llm_model": "Sentinel-Agent-v1",
+      "explanation": "[OBSERVATION]\nCluster consists of 2 orders totaling \u20b94,951.31 placed on the exact same date (2026-09-02), linked by a single shared shipping address with a connection weight of 2.0.\n\n[ANALYSIS]\nThe graph topology reveals a simple dyad sharing a single attribute (shipping address) without device or payment fingerprint overlap. However, both accounts (`ord_ring0_0` and `ord_ring0_1`) are unverified (KYC-verified=False) and were created on the same day as the orders, exhibiting characteristics of fresh, synthetic, or hastily provisioned accounts targeting a localized delivery point. While the total order value is relatively low, the lack of account maturity and absence of KYC verification increase the probability of unauthorized access or multi-account abuse.\n\n[VERDICT]\nFLAGGED: The cluster exhibits high-risk indicators due to unverified, same-day accounts sharing a high-weight shipping address connection.\n\n[RECOMMENDED ACTION]\nPlace both orders on manual review, request identity verification (KYC) for both accounts, and inspect the shared shipping address for history of chargebacks or proxy/reship patterns.",
+      "llm_provider": "gemini",
+      "llm_model": "gemini-flash-lite-latest",
       "orders": {
         "ord_ring0_0": {
           "kyc_verified": false,
@@ -206,17 +206,17 @@
       "flagged": false,
       "edges": [
         {
-          "a": "ord_01982",
-          "b": "ord_01829",
+          "a": "ord_01829",
+          "b": "ord_01982",
           "shared_attrs": [
             "shipping_address"
           ],
           "weight": 2.0
         }
       ],
-      "explanation": "[OBSERVATION]\nAutonomous Agent evaluated 2 orders linked via shipping_address.\n\n[ANALYSIS]\nForensic Audit Score: 2.00 (below risk threshold 4.0). Dampening factors applied due to KYC verification and account maturity.\n\n[VERDICT]\nCLEARED. Consistent with legitimate shared network activity (e.g. household/office).\n\n[RECOMMENDED ACTION]\nClear cluster for normal order fulfillment. Maintain routine logging.",
-      "llm_provider": "offline-agent",
-      "llm_model": "Sentinel-Agent-v1",
+      "explanation": "[OBSERVATION]\nCluster consists of 2 orders totaling \u20b97,108.42, linked exclusively by a shared shipping address with a weighted connection score of 2.0.\n\n[ANALYSIS]\nThe graph topology is a simple dyad connected by a single attribute (shipping address). The cluster exhibits a mixed KYC profile: one account (ord_01829, created June 2026) is KYC-verified, while the other (ord_01982, created March 2026) is unverified. While unverified accounts and shared shipping addresses can indicate proxy purchasing or account takeovers, the presence of a mature, KYC-verified account strongly points toward legitimate shared household or familial activity rather than a coordinated synthetic fraud ring.\n\n[VERDICT]\nCLEARED. The shared address is mitigated by the presence of a KYC-verified household account, indicating legitimate shared domestic activity rather than a coordinated fraud ring.\n\n[RECOMMENDED ACTION]\nAllow the orders to process normally without manual friction, but passively monitor the unverified account for future anomalous velocity.",
+      "llm_provider": "gemini",
+      "llm_model": "gemini-flash-lite-latest",
       "orders": {
         "ord_01829": {
           "kyc_verified": true,
@@ -239,7 +239,7 @@
       ],
       "size": 2,
       "total_weight": 2.0,
-      "flagged": false,
+      "flagged": true,
       "edges": [
         {
           "a": "ord_02578",
@@ -250,9 +250,9 @@
           "weight": 2.0
         }
       ],
-      "explanation": "[OBSERVATION]\nAutonomous Agent evaluated 2 orders linked via shipping_address.\n\n[ANALYSIS]\nForensic Audit Score: 2.00 (below risk threshold 4.0). Dampening factors applied due to low connection density.\n\n[VERDICT]\nCLEARED. Consistent with legitimate shared network activity (e.g. household/office).\n\n[RECOMMENDED ACTION]\nClear cluster for normal order fulfillment. Maintain routine logging.",
-      "llm_provider": "offline-agent",
-      "llm_model": "Sentinel-Agent-v1",
+      "explanation": "[OBSERVATION]\nCluster consists of 2 orders (ord_00426 and ord_02578) with a total order value scale of \u20b94,038.58, linked by a single shared attribute edge: shipping_address (weight 2.0).\n\n[ANALYSIS]\nThe cluster displays a simple pairwise connection via a shared shipping address. Both participating accounts (ord_00426 created 2026-07-16, ord_02578 created 2026-05-06) lack KYC verification. While a shared shipping address with unverified, relatively recent accounts can sometimes indicate multi-accounting or dropshipping behavior, the low cluster size (2 orders) and limited connection graph (solely a shipping address link without device, payment, or promo code overlap) lack the complexity of a sophisticated, multi-hop coordinated fraud ring. \n\n[VERDICT]\nFLAGGED. The cluster exhibits unverified account status linked by a shared shipping address, presenting moderate risk of policy abuse or duplicate accounts.\n\n[RECOMMENDED ACTION]\nManually review the shared shipping address for potential reselling/dropshipping patterns or contact the account holders to complete KYC verification before order fulfillment.",
+      "llm_provider": "gemini",
+      "llm_model": "gemini-flash-lite-latest",
       "orders": {
         "ord_00426": {
           "kyc_verified": false,
@@ -275,7 +275,7 @@
       ],
       "size": 2,
       "total_weight": 1.5,
-      "flagged": false,
+      "flagged": true,
       "edges": [
         {
           "a": "ord_ring2_3",
@@ -286,9 +286,9 @@
           "weight": 1.5
         }
       ],
-      "explanation": "[OBSERVATION]\nAutonomous Agent evaluated 2 orders linked via promo_code.\n\n[ANALYSIS]\nForensic Audit Score: 1.50 (below risk threshold 4.0). Dampening factors applied due to low connection density.\n\n[VERDICT]\nCLEARED. Consistent with legitimate shared network activity (e.g. household/office).\n\n[RECOMMENDED ACTION]\nClear cluster for normal order fulfillment. Maintain routine logging.",
-      "llm_provider": "offline-agent",
-      "llm_model": "Sentinel-Agent-v1",
+      "explanation": "[OBSERVATION]\nA small cluster of 2 orders (ord_ring2_3 and ord_ring2_4) totaling \u20b96,276.53, created on the same date (2026-09-01), linked by a single shared attribute edge (promo_code) with a connection score of 1.5.\n\n[ANALYSIS]\nThe graph topology reveals a simple connection between two unverified accounts created on the exact same day. Both accounts lack KYC verification and share a promotional code. While the total order value scale is relatively low and the connection is limited to a single attribute rather than a multi-hop device or address chain, the combination of simultaneous creation dates, unverified KYC status, and promo code reuse exhibits baseline characteristics of opportunistic multi-account promotion abuse rather than a complex enterprise fraud ring.\n\n[VERDICT]\nFLAGGED. The cluster exhibits moderate risk due to simultaneous creation dates, unverified KYC status, and promo code sharing across multiple fresh accounts.\n\n[RECOMMENDED ACTION]\nPlace both orders under temporary manual review for promotional abuse and restrict the promo code from further multi-account usage.",
+      "llm_provider": "gemini",
+      "llm_model": "gemini-flash-lite-latest",
       "orders": {
         "ord_ring2_3": {
           "kyc_verified": false,
@@ -322,9 +322,9 @@
           "weight": 0.3
         }
       ],
-      "explanation": "[OBSERVATION]\nAutonomous Agent evaluated 2 orders linked via shipping_address.\n\n[ANALYSIS]\nForensic Audit Score: 0.30 (below risk threshold 4.0). Dampening factors applied due to KYC verification and account maturity.\n\n[VERDICT]\nCLEARED. Consistent with legitimate shared network activity (e.g. household/office).\n\n[RECOMMENDED ACTION]\nClear cluster for normal order fulfillment. Maintain routine logging.",
-      "llm_provider": "offline-agent",
-      "llm_model": "Sentinel-Agent-v1",
+      "explanation": "[OBSERVATION]\nCluster consists of 2 orders with a total value of \u20b96,479.47, linked by a single shared attribute edge ('shipping_address') yielding a low weighted connection score of 0.3.\n\n[ANALYSIS]\nForensic evaluation of the graph topology reveals a simple two-node link with zero multi-hop complexity or suspicious attribute sharing (such as devices or payment fingerprints). Both accounts are fully KYC-verified, and their creation dates reflect established account age rather than rapid, burst-style generation typical of coordinated fraud rings. In accordance with the evaluation rules, verified KYC status and mature account profiles heavily indicate legitimate activity, such as members of the same household shipping to a single address.\n\n[VERDICT]\nCLEARED. The cluster exhibits characteristics of legitimate shared-household activity due to fully KYC-verified accounts and minimal graph connectivity.\n\n[RECOMMENDED ACTION]\nClose the alert with no further action required.",
+      "llm_provider": "gemini",
+      "llm_model": "gemini-flash-lite-latest",
       "orders": {
         "ord_legit1_0": {
           "kyc_verified": true,
@@ -350,17 +350,17 @@
       "flagged": false,
       "edges": [
         {
-          "a": "ord_legit0_1",
-          "b": "ord_legit0_0",
+          "a": "ord_legit0_0",
+          "b": "ord_legit0_1",
           "shared_attrs": [
             "shipping_address"
           ],
           "weight": 0.3
         }
       ],
-      "explanation": "[OBSERVATION]\nAutonomous Agent evaluated 2 orders linked via shipping_address.\n\n[ANALYSIS]\nForensic Audit Score: 0.30 (below risk threshold 4.0). Dampening factors applied due to KYC verification and account maturity.\n\n[VERDICT]\nCLEARED. Consistent with legitimate shared network activity (e.g. household/office).\n\n[RECOMMENDED ACTION]\nClear cluster for normal order fulfillment. Maintain routine logging.",
-      "llm_provider": "offline-agent",
-      "llm_model": "Sentinel-Agent-v1",
+      "explanation": "[OBSERVATION]\nCluster consists of 2 orders with a total value of \u20b93,654.96, connected by a single shared attribute link (shipping_address) yielding a low weighted connection score of 0.3.\n\n[ANALYSIS]\nForensic evaluation of the graph topology reveals a simple, isolated pair rather than a multi-hop fraud ring. Both participating accounts (`ord_legit0_0` and `ord_legit0_1`) are fully KYC-verified. In accordance with mandate rules, fully verified KYC status serves as strong evidence of legitimate activity, typically representing shared household or familial ordering patterns rather than coordinated synthetic fraud.\n\n[VERDICT]\nCLEARED. The cluster exhibits low connectivity and consists entirely of KYC-verified accounts representing legitimate household or shared-address activity.\n\n[RECOMMENDED ACTION]\nRelease both orders for standard fulfillment without manual intervention.",
+      "llm_provider": "gemini",
+      "llm_model": "gemini-flash-lite-latest",
       "orders": {
         "ord_legit0_0": {
           "kyc_verified": true,
@@ -378,20 +378,20 @@
     }
   ],
   "audit": {
-    "generated_at": "2026-09-03T14:43:46.372018",
+    "generated_at": "2026-09-03T19:43:04.385207",
     "total_orders_scanned": 3019,
     "known_injected_rings": 3,
-    "rings_correctly_caught": 1,
-    "recall_on_injected_rings": 0.333,
-    "clusters_flagged": 1,
-    "false_positive_clusters": 0,
-    "precision_on_flagged_clusters": 1.0,
+    "rings_correctly_caught": 3,
+    "recall_on_injected_rings": 1.0,
+    "clusters_flagged": 6,
+    "false_positive_clusters": 1,
+    "precision_on_flagged_clusters": 0.833,
     "legit_lookalike_pairs_correctly_ignored": 2,
     "legit_lookalike_pairs_incorrectly_flagged": 0,
     "review_queue_reduction": {
       "raw_orders": 3019,
-      "clusters_worth_reviewing": 1,
-      "reduction_pct": 99.967
+      "clusters_worth_reviewing": 6,
+      "reduction_pct": 99.801
     },
     "honest_caveat": "Precision/recall above are measured against DELIBERATELY INJECTED, KNOWN ring patterns in synthetic data. This validates that the detection MECHANISM works correctly on a known pattern \u2014 it does not, by itself, prove real-world generalization, which would require real (anonymized) order data this project has no access to."
   },
@@ -401,7 +401,7 @@
       "name": "Data Generation",
       "description": "Generating 3000 normal orders + 3 rings + 2 legit lookalikes",
       "status": "ok",
-      "elapsed_s": 0.106,
+      "elapsed_s": 0.107,
       "detail": "3019 orders  \u00b7  15 ring-injected  \u00b7  3004 normal"
     },
     {
@@ -409,7 +409,7 @@
       "name": "Graph Construction",
       "description": "Drawing edges between orders sharing device / address / promo / payment fingerprint",
       "status": "ok",
-      "elapsed_s": 0.011,
+      "elapsed_s": 0.012,
       "detail": "3019 nodes  \u00b7  11 edges"
     },
     {
@@ -423,17 +423,17 @@
     {
       "phase": 4,
       "name": "AI Investigation",
-      "description": "Agent is auditing candidates via offline fallback",
+      "description": "Agent is auditing candidates via GEMINI (live)",
       "status": "ok",
-      "elapsed_s": 0.003,
-      "detail": "10 clusters audited \u00b7 1 flagged \u00b7 OFFLINE-AGENT (live)"
+      "elapsed_s": 45.302,
+      "detail": "10 clusters audited \u00b7 6 flagged \u00b7 GEMINI (live)"
     },
     {
       "phase": 5,
       "name": "Metrics Evaluation",
       "description": "Computing precision, recall, and review-queue reduction",
       "status": "ok",
-      "elapsed_s": 0.003,
+      "elapsed_s": 0.002,
       "detail": ""
     },
     {
@@ -441,7 +441,7 @@
       "name": "Dashboard Build",
       "description": "Compiling frontend/dashboard_data.json from pipeline artifacts",
       "status": "ok",
-      "elapsed_s": 0.001,
+      "elapsed_s": 0.0,
       "detail": "frontend/dashboard_data.json  \u00b7  10 clusters"
     }
   ]
