@@ -113,21 +113,36 @@ def explain_cluster_groq(cluster, orders_by_id):
 
 def explain_cluster_gemini(cluster, orders_by_id):
     """Google Gemini API provider."""
-    resp = requests.post(
-        f"https://generativelanguage.googleapis.com/v1beta/models/"
-        f"gemini-2.0-flash:generateContent?key={GEMINI_KEY}",
-        headers={"Content-Type": "application/json"},
-        json={
-            "contents": [{
-                "parts": [{"text": SYSTEM_PROMPT + "\n\n" + _build_user_prompt(cluster, orders_by_id)}]
-            }],
-            "generationConfig": {"maxOutputTokens": 400},
-        },
-        timeout=30,
-    )
-    resp.raise_for_status()
-    data = resp.json()
-    return data["candidates"][0]["content"]["parts"][0]["text"].strip(), "gemini-2.0-flash"
+    candidate_models = [
+        "gemini-flash-lite-latest",
+        "gemini-flash-latest",
+        "gemma-4-31b-it",
+        "gemini-2.0-flash",
+    ]
+    last_error = None
+    for model in candidate_models:
+        try:
+            resp = requests.post(
+                f"https://generativelanguage.googleapis.com/v1beta/models/"
+                f"{model}:generateContent?key={GEMINI_KEY}",
+                headers={"Content-Type": "application/json"},
+                json={
+                    "contents": [{
+                        "parts": [{"text": SYSTEM_PROMPT + "\n\n" + _build_user_prompt(cluster, orders_by_id)}]
+                    }],
+                    "generationConfig": {"maxOutputTokens": 400},
+                },
+                timeout=30,
+            )
+            resp.raise_for_status()
+            data = resp.json()
+            return data["candidates"][0]["content"]["parts"][0]["text"].strip(), model
+        except Exception as e:
+            last_error = e
+            continue
+    if last_error is not None:
+        raise last_error
+    raise RuntimeError("All Gemini models failed or candidate list is empty.")
 
 
 def explain_cluster_anthropic(cluster, orders_by_id):
@@ -262,5 +277,4 @@ if __name__ == "__main__":
     with open(out_path, "w") as f:
         json.dump(results, f, indent=2)
     print(f"Saved AI Agent explanations to {out_path}")
-
-
+    
