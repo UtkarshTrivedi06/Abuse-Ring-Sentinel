@@ -106,7 +106,9 @@ def explain_cluster_groq(cluster, orders_by_id):
         except Exception as e:
             last_error = e
             continue
-    raise last_error
+    if last_error is not None:
+        raise last_error
+    raise RuntimeError("All Groq models failed or candidate list is empty.")
 
 
 def explain_cluster_gemini(cluster, orders_by_id):
